@@ -1,56 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameOfLife
 {
     public class Life
     {
-        private class Cell
-        {
-            private const int NoGeneration = -1;
-            private const int NoPlayerId = -1;
-
-            public static readonly Cell NullCell = new Cell
-                {
-                    Generation = NoGeneration,
-                    PlayerId = NoPlayerId
-                };
-
-            public int Generation { get; set; }
-            public int PlayerId { get; set; }
-
-            public Cell()
-            {
-                Generation = NoGeneration;
-                PlayerId = NoPlayerId;
-            }
-
-            public bool IsEmpty
-            {
-                get { return Generation == NoGeneration && PlayerId == NoPlayerId; }
-            }
-
-            public void Death()
-            {
-                Generation = NoGeneration;
-                PlayerId = NoPlayerId;
-            }
-
-            public void Born(int playerId)
-            {
-                Generation = 0;
-                PlayerId = playerId;
-            }
-
-            public void Survived()
-            {
-                Generation++;
-            }
-        }
-
         private readonly Cell[] _board;
 
         public int Width { get; private set; }
@@ -94,6 +48,8 @@ namespace GameOfLife
             if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return;
             Cell cell = Get(x, y);
+            if (cell == Cell.NullCell)
+                return;
             cell.Generation = 0;
             cell.PlayerId = playerId;
         }

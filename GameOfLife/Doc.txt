@@ -6,3 +6,4 @@ http://entropymine.com/jason/life/status.html
 
 hexagonal
 http://stackoverflow.com/questions/7392621/what-is-the-best-way-to-represent-hexagonal-latice
+http://www.redblobgames.com/grids/hexagons/

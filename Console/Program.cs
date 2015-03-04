@@ -11,6 +11,25 @@ namespace Console
     {
         private static void Main(string[] args)
         {
+            int[] survivals = new[] { 3, 4 };
+            int[] births = new[] { 2 };
+            Rule rule = new Rule(survivals, births);
+            LifeHex life = new LifeHex(1, rule, false);
+            life.Set(-1,0,0);
+            life.Set(+1, -1, 0);
+            life.Set(0, +1, 0);
+
+            for (int i = 0; i < 100; i++)
+            {
+                Display(life);
+                life.NextGeneration();
+                System.Console.ReadLine();
+                System.Threading.Thread.Sleep(100);
+            }
+        }
+
+        private static void Main2(string[] args)
+        {
             int[] survivals = new[] {2, 3};
             int[] births = new[] {3};
             Rule rule = new Rule(survivals, births);
@@ -27,6 +46,23 @@ namespace Console
                 life.NextGeneration();
                 //System.Console.ReadLine();
                 System.Threading.Thread.Sleep(100);
+            }
+        }
+
+        private static void Display(LifeHex life)
+        {
+            System.Console.Clear();
+
+            System.Console.WriteLine("Generation: {0}  Population: {1}", life.Generation, life.PopulationCount);
+            int[,] cells = life.GetCells();
+            int diagonal = 2*life.Radius+1;
+            for (int y = 0; y < diagonal; y++)
+            {
+                StringBuilder sb = new StringBuilder(diagonal);
+                for (int x = 0; x < diagonal; x++)
+                    //sb.Append(cells[x, y] == -1 ? "." : cells[x,y].ToString());
+                    sb.Append(cells[x, y] >= 0 ? "*" : ".");
+                System.Console.WriteLine(sb.ToString());
             }
         }
 

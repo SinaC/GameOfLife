@@ -1,0 +1,8 @@
+http://dotat.at/prog/life/life.html
+http://golly.sourceforge.net/
+http://fano.ics.uci.edu/ca/rules/b3s23/
+http://www.radicaleye.com/lifepage/
+http://entropymine.com/jason/life/status.html
+
+hexagonal
+http://stackoverflow.com/questions/7392621/what-is-the-best-way-to-represent-hexagonal-latice

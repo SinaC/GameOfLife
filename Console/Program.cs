@@ -12,7 +12,7 @@ namespace Console
     internal class Program
     {
         private const int SquareX = 120;
-        private const int SquareY = 81;
+        private const int SquareY = 80;
 
         private static void Main(string[] args)
         {
@@ -21,7 +21,51 @@ namespace Console
             //bool[,] cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
 
             //TestSquare();
-            TestSparse();
+            //TestSparse();
+            TestRectangularOptimized();
+        }
+
+        private static void TestRectangularOptimized()
+        {
+            LifeRectangularOptimized life = new LifeRectangularOptimized(SquareX, SquareY);
+            // Glider
+            life.Set(2,1);
+            life.Set(3,2);
+            life.Set(1,3);
+            life.Set(2, 3);
+            life.Set(3, 3);
+
+            bool pause = true;
+            while (true)
+            {
+                DisplayRectangularOptimized(life);
+                life.NextGeneration();
+                if (System.Console.KeyAvailable || pause)
+                {
+                    ConsoleKeyInfo keyInfo = System.Console.ReadKey();
+                    if (keyInfo.Key == ConsoleKey.X)
+                        break;
+                    else if (keyInfo.Key == ConsoleKey.Spacebar)
+                        pause = !pause;
+                }
+                System.Threading.Thread.Sleep(10);
+            }
+        }
+
+        private static void DisplayRectangularOptimized(LifeRectangularOptimized life)
+        {
+            //System.Console.Clear();
+            System.Console.SetCursorPosition(0, 0);
+
+            System.Console.WriteLine("Generation: {0:#####}  Population: {1:#####}", life.Generation, life.PopulationCount);
+            int[,] cells = life.GetCells();
+            for (int y = 0; y < life.Height; y++)
+            {
+                StringBuilder sb = new StringBuilder(life.Width);
+                for (int x = 0; x < life.Width; x++)
+                    sb.Append(cells[x, y] > 0 ? "*" : " ");
+                System.Console.WriteLine(sb.ToString());
+            }
         }
 
         private static void TestSparse()
@@ -38,10 +82,10 @@ namespace Console
 
             //List<Tuple<int,int>> cells = ReadRLE(@"d:\github\gameoflife\rle\natural-lwss.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\iwona.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
+            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\pulsars-big-s.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
-            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\lightweightspaceship.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\lightweightspaceship.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\stripey.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\puffer-train.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\make-lightbulb.rle"); // BUG !!! 2nd and 3rd gliders on column 16->19 should have 2 rows between them instead of one

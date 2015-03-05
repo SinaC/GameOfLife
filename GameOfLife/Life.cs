@@ -94,6 +94,7 @@ namespace GameOfLife
                         cell.Survived();
                 }
             }
+            //
             Generation++;
         }
 

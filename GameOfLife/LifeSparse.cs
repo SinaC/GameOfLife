@@ -10,17 +10,23 @@ namespace GameOfLife
         private readonly SparseMatrix<CellSparse> _matrix;
 
         public Rule Rule { get; private set; }
-
         public int Generation { get; private set; }
+        public int BoundaryMinX { get; private set; } // cells outside boundaries born outside boundaries are deleted
+        public int BoundaryMaxX { get; private set; }
+        public int BoundaryMinY { get; private set; }
+        public int BoundaryMaxY { get; private set; }
 
-        public LifeSparse(Rule rule)
+        public LifeSparse(Rule rule, int boundaryMinX = -1000, int boundaryMinY = -1000, int boundaryMaxX = 1000, int boundaryMaxY = 1000)
         {
             if (rule == null)
                 throw new ArgumentNullException("rule");
 
             Rule = rule;
-
             Generation = 0;
+            BoundaryMinX = boundaryMinX;
+            BoundaryMinY = boundaryMinY;
+            BoundaryMaxX = boundaryMaxX;
+            BoundaryMaxY = boundaryMaxY;
 
             _matrix = new SparseMatrix<CellSparse>();
         }
@@ -60,36 +66,41 @@ namespace GameOfLife
         {
             // Compute neighbours
             //  foreach alive cell, add +1 to every cell in neighbourhood
-            // TODO: optimize this, should no check every neighbour of every cell
+            // TODO: optimize this, should not check every neighbour of every cell
             SparseMatrix<NeighbourInfo> neighboursInfo = new SparseMatrix<NeighbourInfo>();
             foreach (CellSparse cell in _matrix.GetData())
             {
                 for (int stepY = -1; stepY <= +1; stepY++)
                     for (int stepX = -1; stepX <= +1; stepX++)
                         //if (stepX != 0 || stepY != 0)
+                    {
+                        int x = cell.X + stepX;
+                        int y = cell.Y + stepY;
+
+                        // Check boundaries
+                        if (x >= BoundaryMinX && x <= BoundaryMaxX && y >= BoundaryMinY && y <= BoundaryMaxY)
                         {
-                            int x = cell.X + stepX;
-                            int y = cell.Y + stepY;
                             NeighbourInfo neighbourInfo = neighboursInfo[x, y];
                             bool ourself = stepX == 0 && stepY == 0; // when we're checking ourself, our neighbour value is 0
                             if (neighbourInfo == null)
                             {
                                 neighbourInfo = new NeighbourInfo
-                                    {
-                                        X = x,
-                                        Y = y,
-                                        Count = ourself ? 0 : 1 // when we're checking ourself, our neighbour value is 0
-                                    };
+                                {
+                                    X = x,
+                                    Y = y,
+                                    Count = ourself ? 0 : 1 // when we're checking ourself, our neighbour value is 0
+                                };
                                 neighboursInfo[x, y] = neighbourInfo;
                             }
                             else
                                 neighbourInfo.Count += ourself ? 0 : 1; // when we're checking ourself, our neighbour value is 0
-                            //System.Diagnostics.Debug.WriteLine("[{0},{1}] -> [{2},{3}] : {4}", cell.X, cell.Y, x, y, neighboursInfo[x, y].Count);
                         }
+                        //System.Diagnostics.Debug.WriteLine("[{0},{1}] -> [{2},{3}] : {4}", cell.X, cell.Y, x, y, neighboursInfo[x, y].Count);
+                    }
             }
 
             // Apply rules
-            foreach(NeighbourInfo neighbour in neighboursInfo.GetData())
+            foreach (NeighbourInfo neighbour in neighboursInfo.GetData())
             {
                 CellSparse cell = _matrix[neighbour.X, neighbour.Y];
                 if (cell == null) // birth ?
@@ -108,7 +119,7 @@ namespace GameOfLife
                         cell.Survived();
                 }
             }
-            
+
             //
             Generation++;
         }
@@ -128,12 +139,12 @@ namespace GameOfLife
 
         public int[,] GetView(int minX, int minY, int maxX, int maxY)
         {
-            int[,] cells = new int[maxX-minX+1, maxY-minY+1];
+            int[,] cells = new int[maxX - minX + 1, maxY - minY + 1];
             for (int y = minY; y <= maxY; y++)
                 for (int x = minX; x <= maxX; x++)
                 {
                     CellSparse value = _matrix[x, y];
-                    cells[x-minX, y-minY] = value == null ? -1 : 1;
+                    cells[x - minX, y - minY] = value == null ? -1 : 1;
                 }
             return cells;
         }

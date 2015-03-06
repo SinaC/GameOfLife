@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace GameOfLife
 {
-    public class LifeRectangularOptimized
+    public class LifeDoubleBuffered
     {
         private readonly int[] _deltas; // delta used to computed neighbour location
         private readonly int _length; // width*height
@@ -18,7 +14,7 @@ namespace GameOfLife
         public int Height { get; private set; }
         public int Generation { get; private set; }
 
-        public LifeRectangularOptimized(int width, int height)
+        public LifeDoubleBuffered(int width, int height)
         {
             Width = width;
             Height = height;
@@ -29,25 +25,13 @@ namespace GameOfLife
             _current = new int[_length];
             _next = new int[_length];
 
-            //_deltas = new int[9];
-            //_deltas[0] = -height - 1;
-            //_deltas[1] = -height;
-            //_deltas[2] = -height + 1;
-
-            //_deltas[3] = -1;
-            //_deltas[4] = 0;
-            //_deltas[5] = +1;
-
-            //_deltas[6] = +height - 1;
-            //_deltas[7] = +height;
-            //_deltas[8] = +height + 1;
-
             _deltas = new int[8];
             _deltas[0] = -width - 1;
             _deltas[1] = -width;
             _deltas[2] = -width + 1;
 
             _deltas[3] = -1;
+            // don't count ourself
             _deltas[4] = +1;
 
             _deltas[5] = +width - 1;
@@ -65,11 +49,6 @@ namespace GameOfLife
         {
             get { return _current.Count(c => c > 0); }
         }
-
-        // TODO: 
-        //  store a list of modified cell in previous step
-        //  build a list of neighbour from previously stored list
-        //  apply rule on neighour list to update board
 
         public void NextGeneration()
         {

@@ -84,13 +84,12 @@ namespace GameOfLife
                             bool ourself = stepX == 0 && stepY == 0; // when we're checking ourself, our neighbour value is 0
                             if (neighbourInfo == null)
                             {
-                                neighbourInfo = new NeighbourInfo
+                                neighboursInfo[x, y] = new NeighbourInfo
                                 {
                                     X = x,
                                     Y = y,
                                     Count = ourself ? 0 : 1 // when we're checking ourself, our neighbour value is 0
                                 };
-                                neighboursInfo[x, y] = neighbourInfo;
                             }
                             else
                                 neighbourInfo.Count += ourself ? 0 : 1; // when we're checking ourself, our neighbour value is 0

@@ -63,7 +63,7 @@ namespace GameOfLife
             get { return _cells.Count(c => c > 0); }
         }
 
-        public void NextGeneration()
+        public void NextGeneration() // DOESNT WORK with gosper glider run on 60x60 map
         {
             int loopCount = 0;
             //// DEBUG: display cells

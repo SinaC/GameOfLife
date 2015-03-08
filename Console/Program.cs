@@ -122,7 +122,7 @@ namespace Console
             int[] survivals = new[] { 2, 3 };
             int[] births = new[] { 3 };
             Rule rule = new Rule(survivals, births);
-            LifeSparse sparse = new LifeSparse(rule, -200, -200, 200, 200);
+            LifeSparse sparse = new LifeSparse(rule);
             //sparse.Set(1, 0, 0);
             //sparse.Set(2, 1, 0);
             //sparse.Set(0, 2, 0);
@@ -130,8 +130,8 @@ namespace Console
             //sparse.Set(2, 2, 0);
 
             //List<Tuple<int,int>> cells = ReadRLE(@"d:\github\gameoflife\rle\natural-lwss.rle");
-            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\iwona.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\iwona.rle");
+            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\pulsars-big-s.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
             //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\lightweightspaceship.rle");

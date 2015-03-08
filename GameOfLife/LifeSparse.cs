@@ -11,7 +11,7 @@ namespace GameOfLife
 
         public Rule Rule { get; private set; }
         public int Generation { get; private set; }
-        public int BoundaryMinX { get; private set; } // cells outside boundaries born outside boundaries are deleted
+        public int BoundaryMinX { get; private set; } // cells born outside boundaries are not created
         public int BoundaryMaxX { get; private set; }
         public int BoundaryMinY { get; private set; }
         public int BoundaryMaxY { get; private set; }
@@ -106,7 +106,7 @@ namespace GameOfLife
                 {
                     if (Rule.Birth(neighbour.Count))
                     {
-                        CellSparse baby = new CellSparse(neighbour.X, neighbour.Y, 0); // TODO: played id
+                        CellSparse baby = new CellSparse(neighbour.X, neighbour.Y, 0); // TODO: player id
                         _matrix.SetAt(neighbour.X, neighbour.Y, baby);
                     }
                 }

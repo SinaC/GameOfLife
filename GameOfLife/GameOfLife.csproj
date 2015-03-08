@@ -34,6 +34,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Boundary.cs" />
     <Compile Include="Cell.cs" />
     <Compile Include="CellSparse.cs" />
     <Compile Include="Life.cs" />

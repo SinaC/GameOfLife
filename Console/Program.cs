@@ -26,6 +26,10 @@ namespace Console
 
             Boundary boundary = new ToroidalBoundary(-5000, -5000, 5000, 5000);
 
+            LifeLookup4X4 test4X4 = new LifeLookup4X4(8,8,rule);
+            const long value2 = ((long) 1 << 9) | ((long) 1 << 18) | ((long) 1 << 27) | ((long) 1 << 36); // a diagonal from top left to bottom right
+            test4X4.ComputeNewValue(0, value);
+
             //LifeLookup2X2 life = new LifeLookup2X2(60, 60, rule);
             //LifeLookupTest life = new LifeLookupTest(60, 60, rule);
             LifeSparse life = new LifeSparse(rule, boundary);

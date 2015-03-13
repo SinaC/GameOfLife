@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace GameOfLife
 {
@@ -74,7 +71,10 @@ namespace GameOfLife
                 cellShift = cellY == 0 ? 5/*top left*/ : 9/*bottom left*/;
             else
                 cellShift = cellY == 0 ? 6/*top right*/ : 10/*bottom right*/;
-            int index = GetIndex(x, y);
+
+            int blockX = x / 2;
+            int blockY = y / 2;
+            int index = blockX + blockY * _xSize;
             // Set value
             _current[index] |= (1 << cellShift);
             /*
@@ -150,6 +150,8 @@ namespace GameOfLife
             {
                 int block2X2 = _current[i];
 
+                // inner 2x2 is stored in position 5, 6, 9, 10
+
                 // build 4x4 from inner 2x2 of value and neighbours
                 int topLeft = _current[(length + i -_xSize - 1)%length];
                 int top = _current[(length + i - _xSize) % length];
@@ -208,13 +210,6 @@ namespace GameOfLife
         public Tuple<int, int, int, int> GetMinMaxIndexes()
         {
             return new Tuple<int, int, int, int>(0, 0, Width-1, Height-1);
-        }
-
-        private int GetIndex(int x, int y)
-        {
-            int blockX = x / 2;
-            int blockY = y / 2;
-            return blockX + blockY * _xSize;
         }
 
         public void Dump()

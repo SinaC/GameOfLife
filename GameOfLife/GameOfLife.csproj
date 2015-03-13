@@ -37,6 +37,8 @@
     <Compile Include="Boundary.cs" />
     <Compile Include="ILife.cs" />
     <Compile Include="LifeLookup2X2.cs" />
+    <Compile Include="LifeLookup4X4.cs" />
+    <Compile Include="LifeLookup8X8.cs" />
     <Compile Include="LifeLookupTest.cs" />
     <Compile Include="LifeNaive.cs" />
     <Compile Include="LifeSparse2.cs" />

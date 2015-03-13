@@ -1,13 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace GameOfLife
 {
-    public class LifeDoubleBuffered
+    public class LifeDoubleBuffered : ILife
     {
         private readonly int[] _deltas; // delta used to computed neighbour location
         private readonly int _length; // width*height
 
-        private int[] _current;// 1: alive  0: dead
+        private int[] _current; // 1: alive  0: dead
         private int[] _next; // used to compute next generation
 
         public int Width { get; private set; }
@@ -39,15 +40,30 @@ namespace GameOfLife
             _deltas[7] = +width + 1;
         }
 
+        public void Reset()
+        {
+            for (int i = 0; i < _length; i++)
+            {
+                _current[i] = 0;
+                _next[i] = 0;
+            }
+            Generation = 0;
+        }
+
         public void Set(int x, int y)
         {
             int index = GetIndex(x, y);
             _current[index] = 1;
         }
 
-        public int PopulationCount
+        public int Population
         {
             get { return _current.Count(c => c > 0); }
+        }
+
+        public Rule Rule
+        {
+            get { return null; } // not used
         }
 
         public void NextGeneration()
@@ -85,9 +101,28 @@ namespace GameOfLife
             Generation++;
         }
 
+        public bool[,] GetView(int minX, int minY, int maxX, int maxY)
+        {
+            int width = maxX - minX+1;
+            int height = maxY - minY+1;
+            bool[,] cells = new bool[width,height];
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                {
+                    int index = GetIndex(minX + x, minY + y);
+                    cells[x, y] = _current[index] == 1;
+                }
+            return cells;
+        }
+
+        public Tuple<int, int, int, int> GetMinMaxIndexes()
+        {
+            return new Tuple<int, int, int, int>(0, 0, Width - 1, Height - 1);
+        }
+
         public int[,] GetCells()
         {
-            int[,] cells = new int[Width, Height];
+            int[,] cells = new int[Width,Height];
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
                 {
@@ -99,7 +134,7 @@ namespace GameOfLife
 
         private int CountNeighbours(int index)
         {
-            return _deltas.Sum(delta => _current[(_length + index + delta) % _length]);
+            return _deltas.Sum(delta => _current[(_length + index + delta)%_length]);
         }
 
         private int GetIndex(int x, int y)

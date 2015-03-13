@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -133,6 +134,7 @@ namespace GameOfLife
             int columnMax = columnIndexes.Max();
 
             StringBuilder matrix = new StringBuilder();
+            matrix.AppendLine(String.Format("Row {0}->{1}  Column {2}->{3}", rowMin, rowMax, columnMin, columnMax));
             for(int y = columnMin; y <= columnMax; y++)
             {
                 StringBuilder line = new StringBuilder();

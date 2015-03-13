@@ -2,21 +2,35 @@
 {
     public abstract class Boundary
     {
-        // perform x + stepX and return computed value (-1 if not valid)
-        public abstract int AddStepX(int x, int stepX);
-        public abstract int AddStepY(int y, int stepY);
+        // perform x + stepX and return computed value (returns false if impossible move)
+        public abstract bool AddStepX(int x, int stepX, out int newX);
+        public abstract bool AddStepY(int y, int stepY, out int newY);
+        public abstract bool IsXValid(int x);
+        public abstract bool IsYValid(int y);
     }
 
     public class NoBoundary : Boundary
     {
-        public override int AddStepX(int x, int stepX)
+        public override bool AddStepX(int x, int stepX, out int newX)
         {
-            return x + stepX;
+            newX = x + stepX;
+            return true;
         }
 
-        public override int AddStepY(int y, int stepY)
+        public override bool AddStepY(int y, int stepY, out int newY)
         {
-            return y + stepY;
+            newY = y + stepY;
+            return true;
+        }
+
+        public override bool IsXValid(int x)
+        {
+            return true;
+        }
+
+        public override bool IsYValid(int y)
+        {
+            return true;
         }
     }
 
@@ -35,24 +49,36 @@
             HighY = highY;
         }
 
-        public override int AddStepX(int x, int stepX)
+        public override bool AddStepX(int x, int stepX, out int newX)
         {
-            x += stepX;
-            if (x < LowX)
-                x += LowX;
-            else if (x > HighX)
-                x -= HighX;
-            return x;
+            // TODO: no conditionnal use modulo
+            newX = x + stepX;
+            if (newX < LowX)
+                newX = newX + (HighX - LowX + 1);
+            else if (newX > HighX)
+                newX = newX - (HighX - LowX + 1);
+            return true;
         }
 
-        public override int AddStepY(int y, int stepY)
+        public override bool AddStepY(int y, int stepY, out int newY)
         {
-            y += stepY;
-            if (y < LowY)
-                y += LowY;
-            else if (y > HighY)
-                y -= HighY;
-            return y;
+            // TODO: no conditionnal use modulo
+            newY = y + stepY;
+            if (newY < LowY)
+                newY = newY + (HighY - LowY + 1);
+            else if (newY > HighY)
+                newY = newY - (HighY - LowY + 1);
+            return true;
+        }
+
+        public override bool IsXValid(int x)
+        {
+            return true;
+        }
+
+        public override bool IsYValid(int y)
+        {
+            return true;
         }
     }
 
@@ -71,20 +97,26 @@
             HighY = highY;
         }
 
-        public override int AddStepX(int x, int stepX)
+        public override bool AddStepX(int x, int stepX, out int newX)
         {
-            x += stepX;
-            if (x < LowX || x > HighX)
-                return -1; // out of bounds
-            return x;
+            newX = x + stepX;
+            return newX >= LowX && newX <= HighX;
         }
 
-        public override int AddStepY(int y, int stepY)
+        public override bool AddStepY(int y, int stepY, out int newY)
         {
-            y += stepY;
-            if (y < LowY || y > HighY)
-                return -1; // out of bounds
-            return y;
+            newY = y + stepY;
+            return newY >= LowX && newY <= HighX;
+        }
+
+        public override bool IsXValid(int x)
+        {
+            return x >= LowX && x <= HighX;
+        }
+
+        public override bool IsYValid(int y)
+        {
+            return y >= LowX && y <= HighX;
         }
     }
 }

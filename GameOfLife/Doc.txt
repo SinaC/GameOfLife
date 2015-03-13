@@ -3,6 +3,7 @@ http://golly.sourceforge.net/
 http://fano.ics.uci.edu/ca/rules/b3s23/
 http://www.radicaleye.com/lifepage/
 http://entropymine.com/jason/life/status.html
+http://www.conwaylife.com/
 
 hexagonal
 http://stackoverflow.com/questions/7392621/what-is-the-best-way-to-represent-hexagonal-latice
@@ -13,8 +14,12 @@ http://www.reddit.com/r/algorithms/comments/1etjf4/optimizing_conways_game_of_li
 http://www.nondot.org/sabre/Mirrored/GraphicsProgrammingBlackBook/gpbb17.pdf
 http://downloads.gamedev.net/pdf/gpbb/gpbb18.pdf
 http://stackoverflow.com/questions/40485/optimizing-conways-game-of-life
+http://www.ibiblio.org/lifepatterns/     About the Applet
 
 http://codereview.stackexchange.com/questions/42718/optimize-conways-game-of-life
 http://jeremybytes.blogspot.be/2014/11/optimizing-conways-game-of-life-with.html
 http://arstechnica.com/civis/viewtopic.php?f=20&t=829969
 http://ddi.cs.uni-potsdam.de/HyFISCH/Produzieren/lis_projekt/proj_gamelife/ConwayScientificAmerican.htm
+http://www.drdobbs.com/jvm/an-algorithm-for-compressing-space-and-t/184406478
+http://cplus.about.com/od/programmingchallenges/a/challenge17.htm
+http://natureofcode.com/book/chapter-7-cellular-automata/

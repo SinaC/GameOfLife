@@ -1,17 +1,62 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameOfLife
 {
+    public class CellHex
+    {
+        private const int NoGeneration = -1;
+        private const int NoPlayerId = -1;
+
+        public static readonly CellHex NullCell = new CellHex
+        {
+            Generation = NoGeneration,
+            PlayerId = NoPlayerId
+        };
+
+        public int Generation { get; set; }
+        public int PlayerId { get; set; }
+
+        public CellHex()
+        {
+            Generation = NoGeneration;
+            PlayerId = NoPlayerId;
+        }
+
+        public bool IsEmpty
+        {
+            get { return Generation == NoGeneration && PlayerId == NoPlayerId; }
+        }
+
+        public void Death()
+        {
+            Generation = NoGeneration;
+            PlayerId = NoPlayerId;
+        }
+
+        public void Born(int playerId)
+        {
+            Generation = 0;
+            PlayerId = playerId;
+        }
+
+        public void Survived()
+        {
+            Generation++;
+        }
+
+        public override string ToString()
+        {
+            return IsEmpty ? "." : "*";
+        }
+    }
+
     //http://www.redblobgames.com/grids/hexagons/#map-storage
     //http://www.redblobgames.com/grids/hexagons/#coordinates     axial coordinates
     public class LifeHex
     {
         // store an hexagon in a rectangle wasting upper left or lower right corner
-        private readonly Cell[] _board;
+        private readonly CellHex[] _board;
 
         // Size=2
         //     [0,-1]  [1,-1]         0(0,0)[-1,-1] 1(1,0)[0,-1] 2(2,0)[1,-1]
@@ -33,15 +78,15 @@ namespace GameOfLife
             Generation = 0;
 
             int diagonal = 2*Radius+1;
-            _board = new Cell[diagonal*diagonal];
+            _board = new CellHex[diagonal * diagonal];
             for (int i = 0; i < _board.Length; i++)
-                _board[i] = new Cell();
+                _board[i] = new CellHex();
         }
 
         public void Reset()
         {
             Generation = 0;
-            foreach (Cell cell in _board)
+            foreach (CellHex cell in _board)
                 cell.Death();
         }
 
@@ -53,8 +98,8 @@ namespace GameOfLife
         public void Set(int q, int r, int playerId)
         {
             // TODO: check invalid q, r
-            Cell cell = Get(q, r);
-            if (cell == Cell.NullCell)
+            CellHex cell = Get(q, r);
+            if (cell == CellHex.NullCell)
                 return;
             cell.Generation = 0;
             cell.PlayerId = playerId;
@@ -70,7 +115,7 @@ namespace GameOfLife
                     int index = Index(q, r);
                     modifiers[index] = false;
                     int neighbours = Neighbours(q, r);
-                    Cell cell = _board[index];
+                    CellHex cell = _board[index];
                     if (cell.IsEmpty) // birth ?
                     {
                         if (Rule.Birth(neighbours))
@@ -86,7 +131,7 @@ namespace GameOfLife
             // Apply modifiers
             for (int i = 0; i < _board.Length; i++)
             {
-                Cell cell = _board[i];
+                CellHex cell = _board[i];
                 if (modifiers[i])
                 {
                     if (cell.IsEmpty) // birth
@@ -110,7 +155,7 @@ namespace GameOfLife
             for (int r = -Radius; r <= Radius; r++)
                 for (int q = -Radius; q <= Radius; q++)
                 {
-                    Cell cell = Get(q, r);
+                    CellHex cell = Get(q, r);
                     int x = q + Radius;
                     int y = r + Radius;
                     cells[x, y] = cell.IsEmpty ? -1 : cell.Generation;
@@ -126,16 +171,16 @@ namespace GameOfLife
             int neighbours = 0;
             for(int i = 0; i < 6; i++)
             {
-                Cell cell = Get(q + NeighbourQ[i], r + NeighbourR[i]);
+                CellHex cell = Get(q + NeighbourQ[i], r + NeighbourR[i]);
                 neighbours += cell.IsEmpty ? 0 : 1;
             }
             return neighbours;
         }
 
-        private Cell Get(int q, int r)
+        private CellHex Get(int q, int r)
         {
             if (q < -Radius || q > Radius || r < -Radius || r > Radius)
-                return Cell.NullCell;
+                return CellHex.NullCell;
             // TODO: handle hasBorders and out of board
             int index = Index(q, r);
             return _board[index];

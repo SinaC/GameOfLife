@@ -15,14 +15,115 @@ namespace Console
 
         private static void Main(string[] args)
         {
-            System.Console.SetWindowSize(SquareX + 1, SquareY + 2);
-            System.Console.SetBufferSize(SquareX + 1, SquareY + 2);
-            //bool[,] cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
+            System.Console.SetWindowSize(SquareX + 1, SquareY + 3);
+            System.Console.SetBufferSize(SquareX + 1, SquareY + 3);
 
             //TestSquare();
-            TestSparse();
-            //TestDoubleBuffered();
-            //TestModifiedList();
+
+            int[] survivals = new[] { 2, 3 };
+            int[] births = new[] { 3 };
+            Rule rule = new Rule(survivals, births);
+
+            Boundary boundary = new ToroidalBoundary(-5000, -5000, 5000, 5000);
+
+            //LifeLookup2X2 life = new LifeLookup2X2(60, 60, rule);
+            //LifeLookupTest life = new LifeLookupTest(60, 60, rule);
+            LifeSparse life = new LifeSparse(rule, boundary);
+            //LifeSparse2 life = new LifeSparse2(rule, boundary);
+            //LifeDoubleBuffered life = new LifeDoubleBuffered(60, 60);
+            TestILife(life);
+        }
+
+        private static void TestILife(ILife life)
+        {
+            //life.Set(3, 2);
+            //life.Set(4, 3);
+            //life.Set(2, 4);
+            //life.Set(3, 4);
+            //life.Set(4, 4);
+
+            //life.Set(2, 2);
+            //life.Set(2, 3);
+            //life.Set(2, 4);
+
+            //List<Tuple<int,int>> cells = ReadRLE(@"d:\github\gameoflife\rle\natural-lwss.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\iwona.rle");
+            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\pulsars-big-s.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\lightweightspaceship.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\stripey.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\puffer-train.rle");
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\make-lightbulb.rle"); // BUG !!! 2nd and 3rd gliders on column 16->19 should have 2 rows between them instead of one
+            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\orthogonal c-7.rle");
+
+            foreach (Tuple<int, int> cell in cells)
+                life.Set(cell.Item1, cell.Item2);
+
+            bool pause = true;
+            while (true)
+            {
+                DisplayILife(life);
+                //DisplayILifeView(life, 0, 0, 80, 60);
+                life.NextGeneration();
+                if (System.Console.KeyAvailable || pause)
+                {
+                    ConsoleKeyInfo keyInfo = System.Console.ReadKey();
+                    if (keyInfo.Key == ConsoleKey.X)
+                        break;
+                    else if (keyInfo.Key == ConsoleKey.Spacebar)
+                        pause = !pause;
+                }
+                System.Threading.Thread.Sleep(10);
+            }
+        }
+
+        private static void DisplayILife(ILife life)
+        {
+            System.Console.SetCursorPosition(0, 0);
+            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}", life.Generation, life.Population);
+
+            Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
+            bool[,] cells = life.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4);
+            for (int y = 0; y <= minmax.Item4 - minmax.Item2; y++)
+            {
+                StringBuilder sb = new StringBuilder(11);
+                for (int x = 0; x <= minmax.Item3 - minmax.Item1; x++)
+                    sb.Append(cells[x, y] ? "*" : ".");
+                System.Console.WriteLine(sb.ToString());
+            }
+        }
+
+        private static void DisplayILifeView(ILife life, int minX, int minY, int maxX, int maxY)
+        {
+            Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
+
+            //System.Console.Clear();
+            System.Console.SetCursorPosition(0, 0);
+            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
+
+            bool[,] cells = life.GetView(minX, minY, maxX, maxY);
+            for (int y = 0; y <= maxY - minY; y++)
+            {
+                StringBuilder sb = new StringBuilder(11);
+                for (int x = 0; x <= maxX - minX; x++)
+                {
+                    //sb.Append(cells[x, y] == -1 ? "." : cells[x,y].ToString());
+                    //sb.Append(cells[x, y] >= 0 ? "*" : ".");
+                    string display = "*";
+                    if (!cells[x, y])
+                    {
+                        if (x == 0)
+                            display = (y % 10).ToString(CultureInfo.InvariantCulture);
+                        else if (y == 0)
+                            display = (x % 10).ToString(CultureInfo.InvariantCulture);
+                        else
+                            display = " ";
+                    }
+                    sb.Append(display);
+                }
+                System.Console.WriteLine(sb.ToString());
+            }
         }
 
         private static void TestModifiedList()
@@ -71,137 +172,12 @@ namespace Console
             }
         }
 
-        private static void TestDoubleBuffered()
-        {
-            LifeDoubleBuffered life = new LifeDoubleBuffered(SquareX, SquareY);
-            //// Glider
-            //life.Set(2,1);
-            //life.Set(3,2);
-            //life.Set(1,3);
-            //life.Set(2, 3);
-            //life.Set(3, 3);
-            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
-            foreach (Tuple<int, int> cell in cells)
-                life.Set(cell.Item1, cell.Item2);
-
-            bool pause = true;
-            while (true)
-            {
-                DisplayDoubleBuffered(life);
-                life.NextGeneration();
-                if (System.Console.KeyAvailable || pause)
-                {
-                    ConsoleKeyInfo keyInfo = System.Console.ReadKey();
-                    if (keyInfo.Key == ConsoleKey.X)
-                        break;
-                    else if (keyInfo.Key == ConsoleKey.Spacebar)
-                        pause = !pause;
-                }
-                System.Threading.Thread.Sleep(10);
-            }
-        }
-
-        private static void DisplayDoubleBuffered(LifeDoubleBuffered life)
-        {
-            //System.Console.Clear();
-            System.Console.SetCursorPosition(0, 0);
-
-            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}", life.Generation, life.PopulationCount);
-            int[,] cells = life.GetCells();
-            for (int y = 0; y < life.Height; y++)
-            {
-                StringBuilder sb = new StringBuilder(life.Width);
-                for (int x = 0; x < life.Width; x++)
-                    sb.Append(cells[x, y] > 0 ? "*" : " ");
-                System.Console.WriteLine(sb.ToString());
-            }
-        }
-
-        private static void TestSparse()
-        {
-            int[] survivals = new[] { 2, 3 };
-            int[] births = new[] { 3 };
-            Rule rule = new Rule(survivals, births);
-            LifeSparse sparse = new LifeSparse(rule);
-            //sparse.Set(1, 0, 0);
-            //sparse.Set(2, 1, 0);
-            //sparse.Set(0, 2, 0);
-            //sparse.Set(1, 2, 0);
-            //sparse.Set(2, 2, 0);
-
-            //List<Tuple<int,int>> cells = ReadRLE(@"d:\github\gameoflife\rle\natural-lwss.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\iwona.rle");
-            List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\pulsars-big-s.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\glider.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\lightweightspaceship.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\stripey.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\puffer-train.rle");
-            //List<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\make-lightbulb.rle"); // BUG !!! 2nd and 3rd gliders on column 16->19 should have 2 rows between them instead of one
-            
-            
-            foreach (Tuple<int, int> cell in cells)
-                sparse.Set(cell.Item1, cell.Item2, 0);
-
-            bool pause = true;
-            while (true)
-            {
-                DisplaySparse(sparse);
-                sparse.NextGeneration();
-                if (System.Console.KeyAvailable || pause)
-                {
-                    ConsoleKeyInfo keyInfo = System.Console.ReadKey();
-                    if (keyInfo.Key == ConsoleKey.X)
-                        break;
-                    else if (keyInfo.Key == ConsoleKey.Spacebar)
-                        pause = !pause;
-                }
-                //System.Threading.Thread.Sleep(10);
-            }
-        }
-
-        private static void DisplaySparse(LifeSparse sparse)
-        {
-            Tuple<int, int, int, int> minmax = sparse.GetMinMaxIndexes();
-
-            //System.Console.Clear();
-            System.Console.SetCursorPosition(0, 0);
-            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3}", sparse.Generation, sparse.PopulationCount, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
-
-            int minx = 0;
-            int maxx = 100;
-            int miny = 0;
-            int maxy = 79;
-            int[,] cells = sparse.GetView(minx, miny, maxx, maxy);
-            for (int y = 0; y <= maxy-miny; y++)
-            {
-                StringBuilder sb = new StringBuilder(11);
-                for (int x = 0; x <= maxx - minx; x++)
-                {
-                    //sb.Append(cells[x, y] == -1 ? "." : cells[x,y].ToString());
-                    //sb.Append(cells[x, y] >= 0 ? "*" : ".");
-                    string display = "*";
-                    if (cells[x,y] < 0)
-                    {
-                        if (x == 0)
-                            display = (y%10).ToString(CultureInfo.InvariantCulture);
-                        else if (y == 0)
-                            display = (x%10).ToString(CultureInfo.InvariantCulture);
-                        else
-                            display = " ";
-                    }
-                    sb.Append(display);
-                }
-                System.Console.WriteLine(sb.ToString());
-            }
-        }
-
         private static void TestSquare()
         {
             int[] survivals = new[] {2, 3};
             int[] births = new[] {3};
             Rule rule = new Rule(survivals, births);
-            Life life = new Life(SquareX, SquareY, rule, true);
+            LifeNaive life = new LifeNaive(SquareX, SquareY, rule, true);
             // Glider
             //life.Set(1,0,0);
             //life.Set(2,1,0);
@@ -258,7 +234,7 @@ namespace Console
             }
         }
 
-        private static void DisplaySquare(Life life)
+        private static void DisplaySquare(LifeNaive life)
         {
             //System.Console.Clear();
             System.Console.SetCursorPosition(0,0);

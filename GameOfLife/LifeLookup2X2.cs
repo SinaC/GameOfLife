@@ -191,20 +191,18 @@ namespace GameOfLife
             Generation++;
         }
 
-        public bool[,] GetView(int minX, int minY, int maxX, int maxY)
+        public void GetView(int minX, int minY, int maxX, int maxY, bool[,] view)
         {
             // doesn't use parameters
-            bool[,] cells = new bool[Width, Height];
             for (int y = 0; y < _ySize; y++)
                 for (int x = 0; x < _xSize; x++)
                 {
                     int index = x + y * _xSize;
-                    cells[2 * x, 2 * y] = ((_current[index] >> 5) & 1) == 1;
-                    cells[2 * x + 1, 2 * y] = ((_current[index] >> 6) & 1) == 1;
-                    cells[2 * x, 2 * y + 1] = ((_current[index] >> 9) & 1) == 1;
-                    cells[2 * x + 1, 2 * y + 1] = ((_current[index] >> 10) & 1) == 1;
+                    view[2 * x, 2 * y] = ((_current[index] >> 5) & 1) == 1;
+                    view[2 * x + 1, 2 * y] = ((_current[index] >> 6) & 1) == 1;
+                    view[2 * x, 2 * y + 1] = ((_current[index] >> 9) & 1) == 1;
+                    view[2 * x + 1, 2 * y + 1] = ((_current[index] >> 10) & 1) == 1;
                 }
-            return cells;
         }
 
         public Tuple<int, int, int, int> GetMinMaxIndexes()

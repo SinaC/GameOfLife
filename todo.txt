@@ -1,0 +1,17 @@
+GetView is not handled correctly in almost every implementation of ILife
+
+based on lookup4x4
+
+1/
+keep a list (index in _current) of alive cell or potential-birth cell (neighbours of alive cells)
+in Set, add cell and neighbour cell in alive list (if not already added)
+ TL   T   TR         if TL <> 0, add x-1,y-1 | x,y-1 | x-1,y to alive list
+  L       R          if T <> 0, add x,y-1 to alive list
+ BL   B   BR         ...
+in NextGeneration, same as Set
+
+2/
+instead of an array of cell, we could store a list of super cell containing 4x4 or 8x8 cell + coordinates + pointers to neighbours super cell
+
+3/
+64 bits could store a 8x4 instead of 4x4, 8x4 + neighbours gives 10x6 which fits in a 64 bits

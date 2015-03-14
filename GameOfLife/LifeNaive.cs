@@ -51,7 +51,7 @@ namespace GameOfLife
         }
     }
 
-    public class LifeNaive
+    public class LifeNaive : ILife
     {
         private readonly Cell[] _board;
 
@@ -86,12 +86,12 @@ namespace GameOfLife
                 cell.Death();
         }
 
-        public int PopulationCount
+        public int Population
         {
             get { return _board.Count(c => !c.IsEmpty); }
         }
 
-        public void Set(int x, int y, int playerId)
+        public void Set(int x, int y)
         {
             if (x < 0 || x >= Width || y < 0 || y >= Height)
                 return;
@@ -99,7 +99,7 @@ namespace GameOfLife
             if (cell == Cell.NullCell)
                 return;
             cell.Generation = 0;
-            cell.PlayerId = playerId;
+            cell.PlayerId = 0;
         }
 
         public void NextGeneration()
@@ -156,6 +156,23 @@ namespace GameOfLife
                     cells[x, y] = cell.IsEmpty ? -1 : cell.Generation;
                 }
             return cells;
+        }
+
+        public void GetView(int minX, int minY, int maxX, int maxY, bool[,] view)
+        {
+            int width = maxX - minX + 1;
+            int height = maxY - minY + 1;
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                {
+                    Cell cell = Get(minX+x, minY+y);
+                    view[x, y] = cell != null && !cell.IsEmpty;
+                }
+        }
+
+        public Tuple<int, int, int, int> GetMinMaxIndexes()
+        {
+            return new Tuple<int, int, int, int>(0, 0, Width - 1, Height - 1);
         }
 
         private int Neighbours(int x, int y)

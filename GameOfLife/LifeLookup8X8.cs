@@ -26,8 +26,8 @@ namespace GameOfLife
         // sample for block 18 19
         //                  26 27
         // 09 10 11 12
-        // 17 18 19 20  will used on lookup to get 18, 19
-        // 25 26 27 28                             26, 27  new values
+        // 17 18 19 20  will be used on lookup to get 18, 19
+        // 25 26 27 28                                26, 27  new values
         // 33 34 35 36
 
         // sample for block 00 01  on x,y

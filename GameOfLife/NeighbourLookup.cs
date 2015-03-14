@@ -31,6 +31,11 @@
             get { return _neighbourLookup[value]; }
         }
 
+        public long this[long value/*4x4*/]
+        {
+            get { return _neighbourLookup[value]; }
+        }
+
         private void BuildLookup()
         {
             for (int i = 0; i < 65536; i++)

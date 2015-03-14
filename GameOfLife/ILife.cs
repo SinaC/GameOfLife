@@ -13,7 +13,7 @@ namespace GameOfLife
 
         void NextGeneration();
 
-        bool[,] GetView(int minX, int minY, int maxX, int maxY);
+        void GetView(int minX, int minY, int maxX, int maxY, bool[,] view);
         Tuple<int, int, int, int> GetMinMaxIndexes(); // minX, minY, maxX, maxY
     }
 }

@@ -168,16 +168,14 @@ namespace GameOfLife
             return new Tuple<int, int, int, int>(rowMin, columnMin, rowMax, columnMax);
         }
 
-        public bool[,] GetView(int minX, int minY, int maxX, int maxY)
+        public void GetView(int minX, int minY, int maxX, int maxY, bool[,] view)
         {
-            bool[,] cells = new bool[maxX - minX + 1, maxY - minY + 1];
             for (int y = minY; y <= maxY; y++)
                 for (int x = minX; x <= maxX; x++)
                 {
                     CellSparse value = _matrix[x, y];
-                    cells[x - minX, y - minY] = value != null;
+                    view[x - minX, y - minY] = value != null;
                 }
-            return cells;
         }
     }
 }

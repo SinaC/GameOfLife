@@ -3,10 +3,9 @@ using System.Linq;
 
 namespace GameOfLife
 {
-    public class LifeLookupTest : ILife
+    public class LifeLookup1X1 : ILife
     {
         private readonly NeighbourLookup _lookup;
-        private readonly int[] _deltas; // delta used to computed neighbour location
         private readonly int _length; // width*height
 
         // no data compression, one cell in one array entry
@@ -23,7 +22,7 @@ namespace GameOfLife
             get { return _current.Count(c => c > 0); }
         }
 
-        public LifeLookupTest(int width, int height, Rule rule)
+        public LifeLookup1X1(int width, int height, Rule rule)
         {
             Width = width;
             Height = height;
@@ -34,19 +33,6 @@ namespace GameOfLife
             _length = width*height;
             _current = new int[_length];
             _next = new int[_length];
-
-            _deltas = new int[8];
-            _deltas[0] = -width - 1;
-            _deltas[1] = -width;
-            _deltas[2] = -width + 1;
-
-            _deltas[3] = -1;
-            // don't count ourself
-            _deltas[4] = +1;
-
-            _deltas[5] = +width - 1;
-            _deltas[6] = +width;
-            _deltas[7] = +width + 1;
 
             Reset();
         }
@@ -98,18 +84,16 @@ namespace GameOfLife
             Generation++;
         }
 
-        public bool[,] GetView(int minX, int minY, int maxX, int maxY)
+        public void GetView(int minX, int minY, int maxX, int maxY, bool[,] view)
         {
             int width = maxX - minX + 1;
             int height = maxY - minY + 1;
-            bool[,] cells = new bool[width, height];
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
                 {
                     int index = GetIndex(minX + x, minY + y);
-                    cells[x, y] = _current[index] == 1;
+                    view[x, y] = _current[index] == 1;
                 }
-            return cells;
         }
 
         public Tuple<int, int, int, int> GetMinMaxIndexes()

@@ -47,7 +47,7 @@ namespace GameOfLife
         //
         // each sub-2x2 is converted to 4x4 (by adding neighbours), 'transformed' with lookup table, then sub-2x2 from lookup is injected in result
 
-        private static readonly int[] Shift = new[] // shift to apply to get bit on position x,y on 8x8 data
+        private static readonly int[] Shift = // shift to apply to get bit on position x,y on 8x8 data
             {
                 00, 01, 04, 05, 16, 17, 20, 21,
                 02, 03, 06, 07, 18, 19, 22, 23,
@@ -440,7 +440,7 @@ namespace GameOfLife
             }
         }
 
-        private static readonly int[] Shift4X4 = new[] // shift to apply to get bit on position x,y for lookup table
+        private static readonly int[] Shift4X4 = // shift to apply to get bit on position x,y for lookup table
             {
                 4, 5, 6, 7,
                 8, 0, 1, 9,

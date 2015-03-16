@@ -20,8 +20,8 @@ namespace Console
 
             //TestSquare();
 
-            int[] survivals = new[] {2, 3};
-            int[] births = new[] {3};
+            int[] survivals = {2, 3};
+            int[] births = {3};
             Rule rule = new Rule(survivals, births);
 
             //LifeLookup4X4 test4X4 = new LifeLookup4X4(8,8,rule);
@@ -43,6 +43,10 @@ namespace Console
             //test8x8.Set(7, 7);
             //const ulong value = ((ulong) 1 << 0) | ((ulong) 1 << 3) | ((ulong) 1 << 12) | ((ulong) 1 << 15) | ((ulong) 1 << 48) | ((ulong) 1 << 51) | ((ulong) 1 << 60) | ((ulong) 1 << 63); // a diagonal from top left to bottom right
             //ulong newValue = test8x8.ComputeNewValue(0, value);
+
+            LifeLookup8X8AliveList testLookup8X8AliveList = new LifeLookup8X8AliveList(rule, new NoBoundary());
+            testLookup8X8AliveList.Set(0,0);
+            testLookup8X8AliveList.Set(7, 7);
 
             LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
             //LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));

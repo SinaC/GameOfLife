@@ -24,21 +24,32 @@ namespace Console
             int[] births = new[] {3};
             Rule rule = new Rule(survivals, births);
 
-            Boundary boundary = new ToroidalBoundary(-5000, -5000, 5000, 5000);
-
             //LifeLookup4X4 test4X4 = new LifeLookup4X4(8,8,rule);
-            //const long value = ((long) 1 << 9) | ((long) 1 << 18) | ((long) 1 << 27) | ((long) 1 << 36); // a diagonal from top left to bottom right
-            //long newValue = test4X4.ComputeNewValue(0, value);
+            //const ulong value = ((ulong) 1 << 9) | ((ulong) 1 << 18) | ((ulong) 1 << 27) | ((ulong) 1 << 36); // a diagonal from top left to bottom right
+            //ulong newValue = test4X4.ComputeNewValue(0, value);
             //test4X4.Set(0,0);
             //test4X4.Set(1, 1);
             //test4X4.Set(2, 2);
             //test4X4.Set(3, 3);
 
-            LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));
+            //LifeLookup8X8 test8x8 = new LifeLookup8X8(16, 16, rule, new ToroidalBoundary(0,0,1,1));
+            //test8x8.Set(0, 0);
+            //test8x8.Set(1, 1);
+            //test8x8.Set(2, 2);
+            //test8x8.Set(3, 3);
+            //test8x8.Set(4, 4);
+            //test8x8.Set(5, 5);
+            //test8x8.Set(6, 6);
+            //test8x8.Set(7, 7);
+            //const ulong value = ((ulong) 1 << 0) | ((ulong) 1 << 3) | ((ulong) 1 << 12) | ((ulong) 1 << 15) | ((ulong) 1 << 48) | ((ulong) 1 << 51) | ((ulong) 1 << 60) | ((ulong) 1 << 63); // a diagonal from top left to bottom right
+            //ulong newValue = test8x8.ComputeNewValue(0, value);
+
+            LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
+            //LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));
             //LifeLookup2X2 life = new LifeLookup2X2(60, 60, rule);
             //LifeLookup1X1 life = new LifeLookup1X1(60, 60, rule);
-            //LifeSparse life = new LifeSparse(rule, boundary);
-            //LifeSparse2 life = new LifeSparse2(rule, boundary);
+            //LifeSparse life = new LifeSparse(rule, new ToroidalBoundary(-5000, -5000, 5000, 5000));
+            //LifeSparse2 life = new LifeSparse2(rule, new ToroidalBoundary(-5000, -5000, 5000, 5000));
             //LifeDoubleBuffered life = new LifeDoubleBuffered(60, 60);
             //LifeNaive life = new LifeNaive(60,60,rule, false);
             TestILife(life);
@@ -76,7 +87,7 @@ namespace Console
 
             //AddRLE(life, @"d:\github\gameoflife\rle\natural-lwss.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\iwona.rle");
-            AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 5, 10);
+            AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 0, 0);
             //AddRLE(life, @"d:\github\gameoflife\rle\pulsars-big-s.rle", 40, 30);
             //AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\lightweightspaceship.rle", 10, 10);
@@ -87,7 +98,8 @@ namespace Console
             //AddRLE(life, @"d:\github\gameoflife\rle\b52.rle", 10, 10);
             //AddRLE(life, @"d:\github\gameoflife\rle\beacon maker.rle", 10, 10);
 
-            AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 56, 47); // to use with glider gun at 5,10
+            //AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 51, 37); // to use with glider gun at 0,0
+            AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 31, 17); // to use with glider gun at 0,0
 
             bool pause = true;
             while (true)
@@ -248,6 +260,7 @@ namespace Console
         private static void AddRLE(ILife life, string filename, int x = 0, int y = 0)
         {
             IEnumerable<Tuple<int, int>> cells = ReadRLE(filename);
+            //System.Diagnostics.Debug.WriteLine("{0}: x: {1} -> {2} y: {3} -> {4}", filename, cells.Select(c => c.Item1).Min(), cells.Select(c => c.Item1).Max(), cells.Select(c => c.Item2).Min(), cells.Select(c => c.Item2).Max());
             foreach (Tuple<int, int> cell in cells)
                 life.Set(cell.Item1 + x, cell.Item2 + y);
         }

@@ -43,7 +43,7 @@
                 _neighbourLookup[i] = ApplyRulesOnBlock(i);
         }
 
-        // apply rules on inner 2x2 using borders to compute neighbours
+        // apply rules on 4x4  2x2 on 4 bits | top neighbours on 4 bits | LT on 1 bit | RT on 1 bit | LB on 1 bit | RB on 1 bit | bottom neighbours on 4 bits
         private uint ApplyRulesOnBlock(uint value /*4x4*/)
         {
             // compute neighbours
@@ -62,8 +62,8 @@
             uint bottomLeft2 = ApplyRulesOnCell((value >> 2) & 1, neighbour2);
             uint bottomRight3 = ApplyRulesOnCell((value >> 3) & 1, neighbour3);
 
-            // build result: clear bits 0, 1, 2, 3 and set new value
-            uint result = (value & 0xF)
+            // build result: clear bits 0, 1, 2, 3 and set new value on bit 0, 1, 2, 3
+            uint result = (value & 0xFFF0)
                           | (topLeft0 << 0) | (topRight1 << 1) | (bottomLeft2 << 2) | (bottomRight3 << 3);
 
             return result;

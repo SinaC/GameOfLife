@@ -1,6 +1,6 @@
 GetView is not handled correctly in almost every implementation of ILife
 
-based on lookup4x4
+based on lookup4x4 or 8x8
 
 1/
 keep a list (index in _current) of alive cell or potential-birth cell (neighbours of alive cells)

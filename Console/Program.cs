@@ -45,8 +45,19 @@ namespace Console
             //ulong newValue = test8x8.ComputeNewValue(0, value);
 
             LifeLookup8X8AliveList testLookup8X8AliveList = new LifeLookup8X8AliveList(rule, new NoBoundary());
-            testLookup8X8AliveList.Set(0,0);
-            testLookup8X8AliveList.Set(7, 7);
+            testLookup8X8AliveList.Set(1,1);
+            testLookup8X8AliveList.Set(1, 2);
+            testLookup8X8AliveList.Set(1, 3);
+            testLookup8X8AliveList.Set(5, 6);
+            testLookup8X8AliveList.Set(6, 6);
+            testLookup8X8AliveList.Set(7, 6);
+            //testLookup8X8AliveList.Set(25,0);
+
+            //Tuple<int, int, int, int> minmax = testLookup8X8AliveList.GetMinMaxIndexes();
+            //bool[,] view = new bool[minmax.Item3 - minmax.Item1 + 8, minmax.Item4 - minmax.Item2 + 8];
+            //testLookup8X8AliveList.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4, view);
+
+            testLookup8X8AliveList.NextGeneration();
 
             LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
             //LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));

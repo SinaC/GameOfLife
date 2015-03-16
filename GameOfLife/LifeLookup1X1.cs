@@ -5,12 +5,12 @@ namespace GameOfLife
 {
     public class LifeLookup1X1 : ILife
     {
-        private readonly NeighbourLookup _lookup;
+        private readonly NeighbourLookupNaturalOrder _lookup;
         private readonly int _length; // width*height
 
         // no data compression, one cell in one array entry
-        private int[] _current; // 1: alive  0: dead
-        private int[] _next; // used to compute next generation
+        private uint[] _current; // 1: alive  0: dead
+        private uint[] _next; // used to compute next generation
 
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -28,11 +28,11 @@ namespace GameOfLife
             Height = height;
             Rule = rule;
 
-            _lookup = new NeighbourLookup(rule);
+            _lookup = new NeighbourLookupNaturalOrder(rule);
 
             _length = width*height;
-            _current = new int[_length];
-            _next = new int[_length];
+            _current = new uint[_length];
+            _next = new uint[_length];
 
             Reset();
         }
@@ -60,12 +60,12 @@ namespace GameOfLife
             {
                 for (int x = 0; x < Height; x += 2)
                 {
-                    int newValue = GetBlock(x, y);
+                    uint newValue = GetBlock(x, y);
                     // only use bits 5, 6, 9, 10
-                    int bit5 = (newValue >> 5) & 1;
-                    int bit6 = (newValue >> 6) & 1;
-                    int bit9 = (newValue >> 9) & 1;
-                    int bit10 = (newValue >> 10) & 1;
+                    uint bit5 = (newValue >> 5) & 1;
+                    uint bit6 = (newValue >> 6) & 1;
+                    uint bit9 = (newValue >> 9) & 1;
+                    uint bit10 = (newValue >> 10) & 1;
                     // 05 06
                     // 09 10
                     _next[GetIndex(x, y)] = bit5;
@@ -76,7 +76,7 @@ namespace GameOfLife
             }
 
             // switch next and current
-            int[] tmp = _next;
+            uint[] tmp = _next;
             _next = _current;
             _current = tmp;
 
@@ -101,40 +101,40 @@ namespace GameOfLife
             return new Tuple<int, int, int, int>(0, 0, Width - 1, Height - 1);
         }
 
-        private int GetBlock(int x, int y) // get 4x4 block with inner 2x2 top left cell in x,y
+        private uint GetBlock(int x, int y) // get 4x4 block with inner 2x2 top left cell in x,y
         {
             // cell on x, y is 5
             // 00 01 02 03
             // 04 05 06 07
             // 08 09 10 11
             // 12 13 14 15
-            int cell0 = _current[GetIndex(x - 1, y - 1)];
-            int cell1 = _current[GetIndex(x, y - 1)];
-            int cell2 = _current[GetIndex(x + 1, y - 1)];
-            int cell3 = _current[GetIndex(x + 2, y - 1)];
+            uint cell0 = _current[GetIndex(x - 1, y - 1)];
+            uint cell1 = _current[GetIndex(x, y - 1)];
+            uint cell2 = _current[GetIndex(x + 1, y - 1)];
+            uint cell3 = _current[GetIndex(x + 2, y - 1)];
+            
+            uint cell4 = _current[GetIndex(x - 1, y)];
+            uint cell5 = _current[GetIndex(x, y)];
+            uint cell6 = _current[GetIndex(x + 1, y)];
+            uint cell7 = _current[GetIndex(x + 2, y)];
+            
+            uint cell8 = _current[GetIndex(x - 1, y + 1)];
+            uint cell9 = _current[GetIndex(x, y + 1)];
+            uint cell10 = _current[GetIndex(x + 1, y + 1)];
+            uint cell11 = _current[GetIndex(x + 2, y + 1)];
+            
+            uint cell12 = _current[GetIndex(x - 1, y + 2)];
+            uint cell13 = _current[GetIndex(x, y + 2)];
+            uint cell14 = _current[GetIndex(x + 1, y + 2)];
+            uint cell15 = _current[GetIndex(x + 2, y + 2)];
 
-            int cell4 = _current[GetIndex(x - 1, y)];
-            int cell5 = _current[GetIndex(x, y)];
-            int cell6 = _current[GetIndex(x + 1, y)];
-            int cell7 = _current[GetIndex(x + 2, y)];
-
-            int cell8 = _current[GetIndex(x - 1, y + 1)];
-            int cell9 = _current[GetIndex(x, y + 1)];
-            int cell10 = _current[GetIndex(x + 1, y + 1)];
-            int cell11 = _current[GetIndex(x + 2, y + 1)];
-
-            int cell12 = _current[GetIndex(x - 1, y + 2)];
-            int cell13 = _current[GetIndex(x, y + 2)];
-            int cell14 = _current[GetIndex(x + 1, y + 2)];
-            int cell15 = _current[GetIndex(x + 2, y + 2)];
-
-            int value =
+            uint value =
                 (cell0) | (cell1 << 1) | (cell2 << 2) | (cell3 << 3) |
                 (cell4 << 4) | (cell5 << 5) | (cell6 << 6) | (cell7 << 7) |
                 (cell8 << 8) | (cell9 << 9) | (cell10 << 10) | (cell11 << 11) |
                 (cell12 << 12) | (cell13 << 13) | (cell14 << 14) | (cell15 << 15);
 
-            int ret = _lookup[value];
+            uint ret = _lookup[value];
             return ret;
         }
 

@@ -5,11 +5,11 @@ namespace GameOfLife
 {
     public class LifeLookup2X2 : ILife
     {
-        private readonly NeighbourLookup _lookup;
+        private readonly NeighbourLookupNaturalOrder _lookup;
         private readonly int _xSize; // grid size (half size)
         private readonly int _ySize;
-        private int[] _current; // 2x2 block stored in bit 5, 6, 9, 10
-        private int[] _next;
+        private uint[] _current; // 2x2 block stored in bit 5, 6, 9, 10
+        private uint[] _next;
 
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -20,13 +20,13 @@ namespace GameOfLife
         {
             get
             {
-                int count = 0;
+                uint count = 0;
                 for (int i = 0; i < _xSize*_ySize; i++)
                 {
-                    int value = _current[i]; // count bit in 2x2 block
+                    uint value = _current[i]; // count bit in 2x2 block
                     count += ((value >> 5) & 1) + ((value >> 6) & 1) + ((value >> 9) & 1) + ((value >> 10) & 1);
                 }
-                return count;
+                return (int)count;
             }
         }
 
@@ -36,13 +36,13 @@ namespace GameOfLife
             Height = height;
             Rule = rule;
 
-            _lookup = new NeighbourLookup(rule);
+            _lookup = new NeighbourLookupNaturalOrder(rule);
 
             _xSize = width/2;
             _ySize = height/2;
 
-            _current = new int[_xSize*_ySize];
-            _next = new int[_xSize * _ySize];
+            _current = new uint[_xSize*_ySize];
+            _next = new uint[_xSize * _ySize];
         }
 
         public void Reset()
@@ -76,7 +76,7 @@ namespace GameOfLife
             int blockY = y / 2;
             int index = blockX + blockY * _xSize;
             // Set value
-            _current[index] |= (1 << cellShift);
+            _current[index] |= ((uint)1 << cellShift);
             /*
             // Set neighbours
             // neighbourhood
@@ -148,21 +148,21 @@ namespace GameOfLife
             int length = _xSize*_ySize;
             for(int i = 0; i < _xSize*_ySize; i++)
             {
-                int block2X2 = _current[i];
+                uint block2X2 = _current[i];
 
                 // inner 2x2 is stored in position 5, 6, 9, 10
 
                 // build 4x4 from inner 2x2 of value and neighbours
-                int topLeft = _current[(length + i -_xSize - 1)%length];
-                int top = _current[(length + i - _xSize) % length];
-                int topRight = _current[(length + i - _xSize+1) % length];
-                int left = _current[(length + i - 1) % length];
-                int right = _current[(length + i +1) % length];
-                int bottomLeft = _current[(length + i +_xSize - 1) % length];
-                int bottom = _current[(length + i +_xSize) % length];
-                int bottomRight = _current[(length + i +_xSize + 1) % length];
+                uint topLeft = _current[(length + i -_xSize - 1)%length];
+                uint top = _current[(length + i - _xSize) % length];
+                uint topRight = _current[(length + i - _xSize+1) % length];
+                uint left = _current[(length + i - 1) % length];
+                uint right = _current[(length + i +1) % length];
+                uint bottomLeft = _current[(length + i +_xSize - 1) % length];
+                uint bottom = _current[(length + i +_xSize) % length];
+                uint bottomRight = _current[(length + i +_xSize + 1) % length];
 
-                int value = (block2X2 & ((1 << 5) | (1 << 6) | (1 << 9) | (1 << 10)))
+                uint value = (block2X2 & ((1 << 5) | (1 << 6) | (1 << 9) | (1 << 10)))
 
                             | (((topLeft >> 10) & 1) << 0)
                             | (((top >> 9) & 1) << 1)
@@ -184,7 +184,7 @@ namespace GameOfLife
                 _next[i] = _lookup[value];
             }
             //
-            int[] temp = _next;
+            uint[] temp = _next;
             _next = _current;
             _current = temp;
             //
@@ -222,14 +222,14 @@ namespace GameOfLife
                 for(int x = 0; x < _xSize; x++)
                 {
                     int index = x + y*_xSize;
-                    int value = _current[index];
-                    int topLeft = (value >> 5) & 1;
-                    int topRight = (value >> 6) & 1;
+                    uint value = _current[index];
+                    uint topLeft = (value >> 5) & 1;
+                    uint topRight = (value >> 6) & 1;
                     top.Append(topLeft);
                     top.Append(topRight);
 
-                    int bottomLeft = (value >> 9) & 1;
-                    int bottomRight = (value >> 10) & 1;
+                    uint bottomLeft = (value >> 9) & 1;
+                    uint bottomRight = (value >> 10) & 1;
                     bottom.Append(bottomLeft);
                     bottom.Append(bottomRight);
                     //
@@ -253,7 +253,7 @@ namespace GameOfLife
                 for (int x = 0; x < _xSize; x++)
                 {
                     int index = x + y * _xSize;
-                    int value = _current[index];
+                    uint value = _current[index];
 
                     char bit0 = ((value >> 0) & 1) == 1 ? '.' : ' ';
                     char bit1 = ((value >> 1) & 1) == 1 ? '.' : ' ';

@@ -37,5 +37,20 @@ namespace GameOfLife
         {
             return _survivalConditions.Any(c => c == neightbours);
         }
+
+        public bool Birth(uint neighbours)
+        {
+            return _birthConditions.Any(c => c == neighbours);
+        }
+
+        public bool Death(uint neighbours)
+        {
+            return !Survive(neighbours);
+        }
+
+        public bool Survive(uint neightbours)
+        {
+            return _survivalConditions.Any(c => c == neightbours);
+        }
     }
 }

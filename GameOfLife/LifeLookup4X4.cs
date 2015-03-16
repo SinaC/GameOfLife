@@ -98,9 +98,9 @@ namespace GameOfLife
         private readonly int _sizeX;
         private readonly int _sizeY;
         private readonly int _length;
-        private long[] _current;
-        private long[] _next;
-        private readonly NeighbourLookup _lookup;
+        private ulong[] _current;
+        private ulong[] _next;
+        private readonly NeighbourLookupNaturalOrder _lookup;
 
         private readonly static int[] TopLeftOfSub2X2 = {9, 11, 25, 27};
 
@@ -114,14 +114,14 @@ namespace GameOfLife
         {
             get
             {
-                long count = 0;
+                ulong count = 0;
                 for (int i = 0; i < _length; i++)
                 {
                     //09 10 11 12
                     //17 18 19 20
                     //25 26 27 28
                     //33 34 35 36
-                    long value = _current[i]; // count bit in 2x2 block
+                    ulong value = _current[i];
                     count += ((value >> 9) & 1) + ((value >> 10) & 1) + ((value >> 11) & 1) + ((value >> 12) & 1)
                         + ((value >> 17) & 1) + ((value >> 18) & 1) + ((value >> 19) & 1) + ((value >> 20) & 1)
                         + ((value >> 25) & 1) + ((value >> 26) & 1) + ((value >> 27) & 1) + ((value >> 28) & 1)
@@ -133,18 +133,23 @@ namespace GameOfLife
 
         public LifeLookup4X4(int width, int height, Rule rule, Boundary boundary)
         {
+            if (width%4 != 0)
+                throw new ArgumentException("Width must be a multiple of 4", "width");
+            if (height % 4 != 0)
+                throw new ArgumentException("Height must be a multiple of 4", "height");
+
             Width = width;
             Height = height;
             Rule = rule;
             Boundary = boundary;
 
-            _lookup = new NeighbourLookup(rule);
+            _lookup = new NeighbourLookupNaturalOrder(rule);
 
-            _sizeX = width/4; // TODO: must be a multiple of 4
+            _sizeX = width/4;
             _sizeY = height/4;
             _length = _sizeX*_sizeY;
-            _current = new long[_length];
-            _next = new long[_length];
+            _current = new ulong[_length];
+            _next = new ulong[_length];
 
             Generation = 0;
         }
@@ -171,7 +176,7 @@ namespace GameOfLife
             int gridX = x/4;
             int gridY = y/4;
             int index = gridX + gridY*_sizeX;
-            _current[index] |= ((long)1 << shift);
+            _current[index] |= ((ulong)1 << shift);
         }
 
         public void NextGeneration()
@@ -180,7 +185,7 @@ namespace GameOfLife
             for (int i = 0; i < _length; i++)
                 _next[i] = ComputeNewValue(i, _current[i]);
             //
-            long[] temp = _next;
+            ulong[] temp = _next;
             _next = _current;
             _current = temp;
             //
@@ -215,17 +220,17 @@ namespace GameOfLife
         // TODO: optimize  
         //      ((x >> y) & 1) << z   into  (x & mask) << (y-z)  with y > z
         //      ((x >> y) & 1) << z   into  (x & mask) >> (z-y)  with y < z
-        public long ComputeNewValue(int i, long value)
+        private ulong ComputeNewValue(int i, ulong value)
         {
             // Fake toroidal coordinates
-            //long topLeft = _current[(_length + i - _sizeX - 1)%_length];
-            //long top = _current[(_length + i - _sizeX) % _length];
-            //long topRight = _current[(_length + i - _sizeX + 1) % _length];
-            //long left = _current[(_length + i - 1) % _length];
-            //long right = _current[(_length + i + 1) % _length];
-            //long bottomLeft = _current[(_length + i + _sizeX - 1) % _length];
-            //long bottom = _current[(_length + i + _sizeX) % _length];
-            //long bottomRight = _current[(_length + i + _sizeX + 1) % _length];
+            //ulong topLeft = _current[(_length + i - _sizeX - 1)%_length];
+            //ulong top = _current[(_length + i - _sizeX) % _length];
+            //ulong topRight = _current[(_length + i - _sizeX + 1) % _length];
+            //ulong left = _current[(_length + i - 1) % _length];
+            //ulong right = _current[(_length + i + 1) % _length];
+            //ulong bottomLeft = _current[(_length + i + _sizeX - 1) % _length];
+            //ulong bottom = _current[(_length + i + _sizeX) % _length];
+            //ulong bottomRight = _current[(_length + i + _sizeX + 1) % _length];
 
             int x = i%_sizeX;
             int y = i/_sizeX;
@@ -235,14 +240,14 @@ namespace GameOfLife
             Boundary.AddStepY(y, -1, out topIndex);
             Boundary.AddStepY(y, 1, out bottomIndex);
 
-            long topLeft = _current[GetIndex(leftIndex, topIndex)];
-            long top = _current[GetIndex(x, topIndex)];
-            long topRight = _current[GetIndex(rightIndex, topIndex)];
-            long left = _current[GetIndex(leftIndex, y)];
-            long right = _current[GetIndex(rightIndex, y)];
-            long bottomLeft = _current[GetIndex(leftIndex, bottomIndex)];
-            long bottom = _current[GetIndex(x, bottomIndex)];
-            long bottomRight = _current[GetIndex(rightIndex, bottomIndex)];
+            ulong topLeft = _current[GetIndex(leftIndex, topIndex)];
+            ulong top = _current[GetIndex(x, topIndex)];
+            ulong topRight = _current[GetIndex(rightIndex, topIndex)];
+            ulong left = _current[GetIndex(leftIndex, y)];
+            ulong right = _current[GetIndex(rightIndex, y)];
+            ulong bottomLeft = _current[GetIndex(leftIndex, bottomIndex)];
+            ulong bottom = _current[GetIndex(x, bottomIndex)];
+            ulong bottomRight = _current[GetIndex(rightIndex, bottomIndex)];
 
             //System.Diagnostics.Debug.WriteLine("current:");
             //System.Diagnostics.Debug.WriteLine("{0},{1}", i%_sizeX, i/_sizeX);
@@ -262,7 +267,7 @@ namespace GameOfLife
             //  32             37 
             //  40 41 42 43 44 45
             // this allows faster 2x2 lookup because neighbourhood will already be stored and we don't have to access other cell anymore
-            long lookup6X6 = value; // copy value no need to filter bits, they will be cleared by neighbours
+            ulong lookup6X6 = value; // copy value no need to filter bits, they will be cleared by neighbours
             // build 6x6 block with real value and neighbours
             // top
             //  bit 36 of x-1,y-1 -> bit 0
@@ -325,7 +330,7 @@ namespace GameOfLife
             //  24 25 26 27 28 29   bottom row: bit index+5 -> bit index+18
             //  32 33 34 35 36 37 
             //  40 41 42 43 44 45
-            long result = 0;
+            ulong result = 0;
             foreach(int bitIndex in TopLeftOfSub2X2)
             {
                 //   build a 16 bit value to use on lookup table, real data are stored in 5, 6, 9, 10 and neighbours in 0, 1, 2, 3, 4, 7, 8, 11, 12, 13, 14, 15
@@ -345,7 +350,7 @@ namespace GameOfLife
                 //          right top: bit index+2 -> stored in bit 7
                 //          right bottom: bit index+10 -> stored in bit 11
                 //          bottom (4 bits): from bit index+15 to bit index+18 -> stored in bit 12 to 15
-                long lookup4X4 = // stored in a 64 bits to avoid cast on short on each step
+                ulong lookup4X4 = // stored in a 64 bits to avoid cast on short on each step
                     // inner 2x2
                     ((lookup6X6 >> bitIndex) & 1) << 5 |
                     ((lookup6X6 >> bitIndex + 1) & 1) << 6 |
@@ -360,12 +365,12 @@ namespace GameOfLife
                 lookup4X4 |= ((lookup6X6 >> (bitIndex + 15)) & 0xF) << 12; // bottom
 
                 //System.Diagnostics.Debug.WriteLine("Sub2x2 + neighbours {0}", bitIndex);
-                //Dump4X4((int)lookup4X4);
+                //Dump4X4From0((int)lookup4X4);
 
-                long result2X2 = _lookup[lookup4X4]; // result 2x2 must be a long to avoid bit loss while shifting in injection into result
+                ulong result2X2 = _lookup[lookup4X4]; // result 2x2 must be a ulong to avoid bit loss while shifting in injection into result
 
                 //System.Diagnostics.Debug.WriteLine("Result 2x2: row1:{0} row2:{1}", (result2X2 >> 5) & 0x3, (result2X2 >> 9) & 0x3);
-                //Dump4X4((int)result2X2);
+                //Dump4X4From0((int)result2X2);
 
                 // inject result2x2 into result, only use bit 5, 6, 9, 10
                 // bit 5, 6 -> bit index, bit index+1
@@ -374,11 +379,11 @@ namespace GameOfLife
                 result |= ((result2X2 >> 9) & 0x3) << (bitIndex+8); // keep 2 bits: 9, 10 -> bit index+8, bit index+9
 
                 //System.Diagnostics.Debug.WriteLine("temp result");
-                //Dump4X4(result);
+                //Dump4X4From9(result);
             }
 
             //System.Diagnostics.Debug.WriteLine("new:");
-            //Dump4X4(result);
+            //Dump4X4From9(result);
 
             return result;
         }
@@ -402,7 +407,7 @@ namespace GameOfLife
             System.Diagnostics.Debug.WriteLine("{0}{1}", bottomLeft, bottomRight);
         }
 
-        private static void Dump4X4(int value)
+        private static void Dump4X4From0(ulong value)
         {
             System.Diagnostics.Debug.WriteLine(value);
             //00 01 02 03
@@ -415,39 +420,39 @@ namespace GameOfLife
                 for (int x = 0; x < 4; x++)
                 {
                     int shift = y * 4 + x;
-                    long v = (value >> shift) & 1;
+                    ulong v = (value >> shift) & 1;
                     sb.Append(v);
                 }
                 System.Diagnostics.Debug.WriteLine(sb.ToString());
             }
         }
 
-        private static void Dump4X4(long value)
+        private static void Dump4X4From9(ulong value)
         {
             System.Diagnostics.Debug.WriteLine(value);
             //09 10 11 12
             //17 18 19 20
             //25 26 27 28
             //33 34 35 36
-            //long v09 = (value >> 9) & 1;
-            //long v10 = (value >> 10) & 1;
-            //long v11 = (value >> 11) & 1;
-            //long v12 = (value >> 12) & 1;
+            //ulong v09 = (value >> 9) & 1;
+            //ulong v10 = (value >> 10) & 1;
+            //ulong v11 = (value >> 11) & 1;
+            //ulong v12 = (value >> 12) & 1;
             //System.Diagnostics.Debug.WriteLine("{0}{1}{2}{3}", v09, v10, v11, v12);
-            //long v17 = (value >> 17) & 1;
-            //long v18 = (value >> 18) & 1;
-            //long v19 = (value >> 19) & 1;
-            //long v20 = (value >> 20) & 1;
+            //ulong v17 = (value >> 17) & 1;
+            //ulong v18 = (value >> 18) & 1;
+            //ulong v19 = (value >> 19) & 1;
+            //ulong v20 = (value >> 20) & 1;
             //System.Diagnostics.Debug.WriteLine("{0}{1}{2}{3}", v17, v18, v19, v20);
-            //long v25 = (value >> 25) & 1;
-            //long v26 = (value >> 26) & 1;
-            //long v27 = (value >> 27) & 1;
-            //long v28 = (value >> 28) & 1;
+            //ulong v25 = (value >> 25) & 1;
+            //ulong v26 = (value >> 26) & 1;
+            //ulong v27 = (value >> 27) & 1;
+            //ulong v28 = (value >> 28) & 1;
             //System.Diagnostics.Debug.WriteLine("{0}{1}{2}{3}", v25, v26, v27, v28);
-            //long v33 = (value >> 33) & 1;
-            //long v34 = (value >> 34) & 1;
-            //long v35 = (value >> 35) & 1;
-            //long v36 = (value >> 36) & 1;
+            //ulong v33 = (value >> 33) & 1;
+            //ulong v34 = (value >> 34) & 1;
+            //ulong v35 = (value >> 35) & 1;
+            //ulong v36 = (value >> 36) & 1;
             //System.Diagnostics.Debug.WriteLine("{0}{1}{2}{3}", v33, v34, v35, v36);
             for (int y = 0; y < 4; y++)
             {
@@ -455,14 +460,14 @@ namespace GameOfLife
                 for (int x = 0; x < 4; x++)
                 {
                     int shift = y * 8 + 9 + x;
-                    long v = (value >> shift) & 1;
+                    ulong v = (value >> shift) & 1;
                     sb.Append(v);
                 }
                 System.Diagnostics.Debug.WriteLine(sb.ToString());
             }
         }
 
-        private static void Dump6X6(long value)
+        private static void Dump6X6(ulong value)
         {
             System.Diagnostics.Debug.WriteLine(value);
             //  00 01 02 03 04 05 
@@ -477,7 +482,7 @@ namespace GameOfLife
                 for (int x = 0; x < 6; x++)
                 {
                     int shift = y*8 + x;
-                    long v = (value >> shift) & 1;
+                    ulong v = (value >> shift) & 1;
                     sb.Append(v);
                 }
                 System.Diagnostics.Debug.WriteLine(sb.ToString());

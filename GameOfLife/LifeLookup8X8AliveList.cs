@@ -6,16 +6,38 @@ using System.Text;
 
 namespace GameOfLife
 {
+    // TODO: 
+    //  instead of storing a simple 64 bit in sparse matrix, store a super cell containing 4 or 16 cell of 64 bits
+    //  instead of copying NewData into CurrentData, use Data1 and Data2 and algorithm switch between 1 and 2
+    //  no need to use a SparseMatrix to store newly created cells
+    //  store neighbour left/top/right/bottom index in cell (computed when creating cell)
+
+    // 63  42 43 46 47 58 59 62 63  42
+    //     -----------------------
+    // 21 |00 01|04 05|16 17|20 21| 00
+    // 23 |02 03|06 07|18 19|22 23| 02
+    //     ----- ----- ----- -----
+    // 29 |08 09|12 13|24 25|28 29| 08
+    // 31 |10 11|14 15|26 27|30 31| 10
+    //     ----- ----- ----- -----
+    // 53 |32 33|36 37|48 49|52 53| 32
+    // 55 |34 35|38 39|50 51|54 55| 34
+    //     ----- ----- ---- ------
+    // 61 |40 41|44 45|56 57|60 61| 40
+    // 63 |42 43|46 47|58 59|62 63| 42
+    //     -----------------------
+    // 21  00 01 04 05 16 17 20 21  00
     public class LifeLookup8X8AliveList : ILife
     {
         internal class CellSparse8X8
         {
-            public static readonly CellSparse8X8 EmptyCell = new CellSparse8X8(0,0);
+            public static readonly CellSparse8X8 EmptyCell = new CellSparse8X8(0, 0);
 
             public int X { get; private set; }
             public int Y { get; private set; }
 
-            public ulong Data { get; set; }
+            public ulong CurrentData { get; set; }
+            public ulong NewData { get; set; } // temporary, once every alive cell has been handled, this value is copied in CurrentData
 
             public CellSparse8X8(int x, int y)
             {
@@ -31,8 +53,8 @@ namespace GameOfLife
                     StringBuilder line = new StringBuilder();
                     for (int x = 0; x < 8; x++)
                     {
-                        int shift = Shift[x + y * 8];
-                        ulong v = (Data >> shift) & 1;
+                        int shift = Shift[x + y*8];
+                        ulong v = (CurrentData >> shift) & 1;
                         line.Append(v);
                     }
                     sb.AppendLine(line.ToString());
@@ -40,6 +62,27 @@ namespace GameOfLife
                 return sb.ToString();
             }
         }
+
+        //00 01|04 05|16 17|20 21
+        //02                   23
+        //--                   --
+        //08                   29
+        //10                   31
+        //--                   --
+        //32                   53
+        //34                   55
+        //--                   --
+        //40                   61
+        //42 43|46 47|58 59|62 63
+
+        private const ulong BottomRightMask = ((ulong)1 << 63);
+        private const ulong BottomMask = ((ulong)1 << 42) | ((ulong)1 << 43) | ((ulong)1 << 46) | ((ulong)1 << 47) | ((ulong)1 << 58) | ((ulong)1 << 59) | ((ulong)1 << 62) | ((ulong)1 << 63);
+        private const ulong BottomLeftMask = ((ulong) 1 << 42);
+        private const ulong RightMask = ((ulong) 1 << 21) | ((ulong) 1 << 23) | ((ulong) 1 << 29) | ((ulong) 1 << 31) | ((ulong) 1 << 53) | ((ulong) 1 << 55) | ((ulong) 1 << 61) | ((ulong) 1 << 63);
+        private const ulong LeftMask = ((ulong) 1 << 0) | ((ulong) 1 << 2) | ((ulong) 1 << 8) | ((ulong) 1 << 10) | ((ulong) 1 << 32) | ((ulong) 1 << 34) | ((ulong) 1 << 40) | ((ulong) 1 << 42);
+        private const ulong TopRightMask = ((ulong) 1 << 21);
+        private const ulong TopMask = ((ulong) 1 << 0) | ((ulong) 1 << 1) | ((ulong) 1 << 4) | ((ulong) 1 << 5) | ((ulong) 1 << 16) | ((ulong) 1 << 17) | ((ulong) 1 << 20) | ((ulong) 1 << 21);
+        private const ulong TopLeftMask = ((ulong) 1 << 0);
 
         private static readonly int[] Shift = // shift to apply to get bit on position x,y on 8x8 data
             {
@@ -58,9 +101,25 @@ namespace GameOfLife
         private readonly NeighbourLookupUnnaturalOrder _lookup;
 
         public int Generation { get; private set; }
-        public int Population { get; private set; }
         public Rule Rule { get; private set; }
         public Boundary Boundary { get; private set; }
+
+        public int Population
+        {
+            get
+            {
+                ulong count = 0;
+                foreach (CellSparse8X8 cell in _alive.GetData().Where(c => c.CurrentData != 0))
+                {
+                    // count bit (naive method)
+                    // could use http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetNaive 
+                    // or http://stackoverflow.com/questions/2709430/count-number-of-bits-in-a-64-bit-ulong-big-integer
+                    for (int bit = 0; bit < 64; bit++)
+                        count += (cell.CurrentData >> bit) & 1;
+                }
+                return (int) count;
+            }
+        }
 
         public LifeLookup8X8AliveList(Rule rule, Boundary boundary)
         {
@@ -70,7 +129,7 @@ namespace GameOfLife
             _lookup = new NeighbourLookupUnnaturalOrder(rule);
             _alive = new SparseMatrix<CellSparse8X8>();
 
-            Population = 0;
+            Generation = 0;
         }
 
         public void Reset()
@@ -81,17 +140,31 @@ namespace GameOfLife
 
         public void Set(int x, int y)
         {
+            // 1 -> 1
+            // 7 -> 7
+            // 15 -> 7
+            // -1 -> 7
+            // -8 -> 0
+            // -9 -> 7
+            // -16 -> 0
             // Fill (create if needed) cell
-            int cellX = x%8;
-            int cellY = y%8;
+            int cellX = (8 + (x%8))%8; //
+            int cellY = (8 + (y%8))%8;
             int shift = Shift[cellX + cellY*8];
             int gridX = x/8;
             int gridY = y/8;
             CellSparse8X8 cell = _alive[gridX, gridY] ?? SpawnCell(gridX, gridY, _alive); // get/create cell
-            cell.Data |= ((ulong) 1 << shift);
+            cell.CurrentData |= ((ulong) 1 << shift);
+
+            Debug.WriteLine("SET:{0},{1}", x, y);
 
             // Create neighbours if needed
-            AddNeighbours(gridX, gridY, _alive);
+            int topIndex, bottomIndex, leftIndex, rightIndex;
+            Boundary.AddStepX(gridX, -1, out leftIndex);
+            Boundary.AddStepX(gridX, 1, out rightIndex);
+            Boundary.AddStepY(gridY, -1, out topIndex);
+            Boundary.AddStepY(gridY, 1, out bottomIndex);
+            SpawnNeighbours(gridX, gridY, cell.CurrentData, topIndex, bottomIndex, leftIndex, rightIndex, _alive);
 
             //Dump8X8(cell.Data);
             //System.Diagnostics.Debug.WriteLine(_alive);
@@ -99,68 +172,135 @@ namespace GameOfLife
 
         public void NextGeneration()
         {
-            SparseMatrix<CellSparse8X8> newCells = new SparseMatrix<CellSparse8X8>();
+            Debug.WriteLine("NextGeneration {0}", _alive.GetData().Count());
+
+            SparseMatrix<CellSparse8X8> newCells = new SparseMatrix<CellSparse8X8>(); // TODO: is SparseMatrix needed ?
             foreach (CellSparse8X8 cell in _alive.GetData())
             {
-                Dump8X8(cell.Data);
+                //Debug.WriteLine("Handling cell {0},{1}", cell.X, cell.Y);
+                //Dump8X8(cell.CurrentData);
 
                 int x = cell.X;
                 int y = cell.Y;
                 int topIndex, bottomIndex, leftIndex, rightIndex;
-                Boundary.AddStepX(x, -1, out leftIndex);
-                Boundary.AddStepX(x, 1, out rightIndex);
-                Boundary.AddStepY(y, -1, out topIndex);
-                Boundary.AddStepY(y, 1, out bottomIndex);
+                bool leftValid = Boundary.AddStepX(x, -1, out leftIndex);
+                bool rightValid = Boundary.AddStepX(x, 1, out rightIndex);
+                bool topValid = Boundary.AddStepY(y, -1, out topIndex);
+                bool bottomValid = Boundary.AddStepY(y, 1, out bottomIndex);
 
-                ulong topLeft = (_alive[leftIndex, topIndex] ?? CellSparse8X8.EmptyCell).Data;
-                ulong top = (_alive[x, topIndex] ?? CellSparse8X8.EmptyCell).Data;
-                ulong topRight = (_alive[rightIndex, topIndex] ?? CellSparse8X8.EmptyCell).Data;
-                ulong left = (_alive[leftIndex, y] ?? CellSparse8X8.EmptyCell).Data;
-                ulong right = (_alive[rightIndex, y] ?? CellSparse8X8.EmptyCell).Data;
-                ulong bottomLeft = (_alive[leftIndex, bottomIndex] ?? CellSparse8X8.EmptyCell).Data;
-                ulong bottom = (_alive[x, bottomIndex] ?? CellSparse8X8.EmptyCell).Data;
-                ulong bottomRight = (_alive[rightIndex, bottomIndex] ?? CellSparse8X8.EmptyCell).Data;
+                ulong topLeft = (leftValid && topValid ? (_alive[leftIndex, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong top = (topValid ? (_alive[x, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong topRight = (rightValid && topValid ? (_alive[rightIndex, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong left = (leftValid ? (_alive[leftIndex, y] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong right = (rightValid ? (_alive[rightIndex, y] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong bottomLeft = (leftValid && bottomValid ? (_alive[leftIndex, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong bottom = (bottomValid ? (_alive[x, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+                ulong bottomRight = (bottomValid && rightValid ? (_alive[rightIndex, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
 
-                ulong newValue = ComputeNewValue(cell.Data, topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
+                ulong newValue = ComputeNewValue(cell.CurrentData, topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
 
-                Dump8X8(newValue);
+                //Dump8X8(newValue);
 
-                if (cell.Data == 0 && newValue != 0)  // birth -> add neighbours in new cell list
-                    AddNeighbours(x, y, newCells);
-                // TODO: conditions to remove cell
+                if (newValue != 0) // no death -> add neighbours in new cell list
+                    SpawnNeighbours(x, y, newValue, topIndex, bottomIndex, leftIndex, rightIndex, newCells);
+
+                cell.NewData = newValue; // Save new value, it will be copied in current data once every cells have been handled
             }
+            // Copy new value to current value + list dead cells
+            List<CellSparse8X8> toRemove = new List<CellSparse8X8>();
+            foreach (CellSparse8X8 cell in _alive.GetData())
+            {
+                cell.CurrentData = cell.NewData;
+                // if newValue == 0 and nothing in neighbourhood, remove cell
+                if (cell.CurrentData == 0 && !HasNeighbours(cell))
+                    toRemove.Add(cell);
+            }
+
+            // Remove dead cells
+            foreach (CellSparse8X8 cell in toRemove)
+            {
+                Debug.WriteLine("INCINERATE {0},{1}", cell.X, cell.Y);
+                _alive.RemoveAt(cell.X, cell.Y);
+            }
+
             // Add cell from new list to alive list
-            foreach(CellSparse8X8 newCell in newCells.GetData())
-                if (_alive[newCell.X,newCell.Y] != null)
+            foreach (CellSparse8X8 newCell in newCells.GetData())
+                if (_alive[newCell.X, newCell.Y] == null)
                     _alive.SetAt(newCell.X, newCell.Y, newCell);
+            //
+            Generation++;
         }
 
         public void GetView(int minX, int minY, int maxX, int maxY, bool[,] view)
         {
             // doesn't use parameters
-            foreach (CellSparse8X8 cell in _alive.GetData())
+            //foreach (CellSparse8X8 cell in _alive.GetData().Where(c => c.CurrentData != 0))
+            //{
+            //    for (int yi = 0; yi < 8; yi++)
+            //        for (int xi = 0; xi < 8; xi++)
+            //        {
+            //            int shift = Shift[xi + yi * 8];
+
+            //            int x = cell.X*8 + xi - minX;
+            //            int y = cell.Y*8 + yi - minY;
+            //            view[x,y] = ((cell.CurrentData >> shift) & 1) != 0;
+            //        }
+            //}
+            foreach (CellSparse8X8 cell in _alive.GetData().Where(c => c.CurrentData != 0))
             {
-                for(int yi = 0; yi < 8; yi++)
+                for (int yi = 0; yi < 8; yi++)
                     for (int xi = 0; xi < 8; xi++)
                     {
-                        int shift = Shift[xi + yi * 8];
+                        int shift = Shift[xi + yi*8];
 
-                        view[cell.X*8+xi-minX, cell.Y*8 + yi-minY] = ((cell.Data >> shift) & 1) != 0;
+                        int x = cell.X*8 + xi;
+                        int y = cell.Y*8 + yi;
+                        if (x >= minX && x <= maxX && y >= minY && y <= maxY)
+                            view[x - minX, y - minY] = ((cell.CurrentData >> shift) & 1) != 0;
                     }
             }
         }
 
         public Tuple<int, int, int, int> GetMinMaxIndexes()
         {
-            List<int> rowIndexes = _alive.GetRowIndexes().ToList();
-            int rowMin = 8*rowIndexes.Min();
-            int rowMax = 8 * rowIndexes.Max();
+            if (_alive.GetData().All(c => c.CurrentData == 0))
+                return null;
 
-            List<int> columnIndexes = _alive.GetColumnIndexes().ToList();
-            int columnMin = 8 * columnIndexes.Min();
-            int columnMax = 8 * columnIndexes.Max();
+            CellSparse8X8 minXCell = _alive.GetData().Where(c => c.CurrentData != 0).OrderBy(c => c.X).First();
+            CellSparse8X8 minYCell = _alive.GetData().Where(c => c.CurrentData != 0).OrderBy(c => c.Y).First();
+            CellSparse8X8 maxXCell = _alive.GetData().Where(c => c.CurrentData != 0).OrderByDescending(c => c.X).First();
+            CellSparse8X8 maxYCell = _alive.GetData().Where(c => c.CurrentData != 0).OrderByDescending(c => c.Y).First();
 
-            return new Tuple<int, int, int, int>(rowMin, columnMin, rowMax, columnMax);
+            // stored X is grid x (real x / 8) and not real X, in a cell x goes from 0 to 7 -> *8 + 7. Same goes for y
+            return new Tuple<int, int, int, int>(minXCell.X*8, minYCell.Y*8, maxXCell.X*8 + 7, maxYCell.Y*8 + 7);
+        }
+
+        private bool HasNeighbours(CellSparse8X8 cell)
+        {
+            int x = cell.X;
+            int y = cell.Y;
+            int topIndex, bottomIndex, leftIndex, rightIndex;
+            bool leftValid = Boundary.AddStepX(x, -1, out leftIndex);
+            bool rightValid = Boundary.AddStepX(x, 1, out rightIndex);
+            bool topValid = Boundary.AddStepY(y, -1, out topIndex);
+            bool bottomValid = Boundary.AddStepY(y, 1, out bottomIndex);
+
+            ulong topLeft = (leftValid && topValid ? (_alive[leftIndex, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong top = (topValid ? (_alive[x, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong topRight = (rightValid && topValid ? (_alive[rightIndex, topIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong left = (leftValid ? (_alive[leftIndex, y] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong right = (rightValid ? (_alive[rightIndex, y] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong bottomLeft = (leftValid && bottomValid ? (_alive[leftIndex, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong bottom = (bottomValid ? (_alive[x, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+            ulong bottomRight = (bottomValid && rightValid ? (_alive[rightIndex, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
+
+            // every neighbour is empty
+            if (topLeft == 0 && top == 0 && topRight == 0 && left == 0 && right == 0 && bottomLeft == 0 && bottom == 0 && bottomRight == 0)
+                return false;
+            // check neighbour borders
+            if ((topLeft & BottomRightMask) != 0 || (top & BottomMask) != 0 || (topRight & BottomLeftMask) != 0 || (left & RightMask) != 0 || (right & LeftMask) != 0 || (bottomLeft & TopRightMask) != 0 || (bottom & TopMask) != 0 || (bottomRight & TopLeftMask) != 0)
+                return true;
+            return false;
         }
 
         private ulong ComputeNewValue(ulong value, ulong topLeft, ulong top, ulong topRight, ulong left, ulong right, ulong bottomLeft, ulong bottom, ulong bottomRight)
@@ -380,45 +520,66 @@ namespace GameOfLife
             return newValue;
         }
 
-        private static void Dump8X8(ulong value, string msg = null)
-        {
-            System.Diagnostics.Debug.WriteLine(value + " " + (msg ?? String.Empty));
-            for (int y = 0; y < 8; y++)
-            {
-                StringBuilder sb = new StringBuilder();
-                for (int x = 0; x < 8; x++)
-                {
-                    int shift = Shift[x + y * 8];
-                    ulong v = (value >> shift) & 1;
-                    sb.Append(v);
-                }
-                System.Diagnostics.Debug.WriteLine(sb.ToString());
-            }
-        }
-
         private CellSparse8X8 SpawnCell(int x, int y, SparseMatrix<CellSparse8X8> cells)
         {
+            Debug.WriteLine("SPAWN:{0} {1}", x, y);
+
             CellSparse8X8 cell = new CellSparse8X8(x, y);
             cells.SetAt(x, y, cell);
             return cell;
         }
 
-        private void AddNeighbours(int x, int y, SparseMatrix<CellSparse8X8> cells)
+        // Create neighbours if needed (cell has a bit set on border and neighbour cell doesn't exist yet)
+        private void SpawnNeighbours(int x, int y, ulong value, int topIndex, int bottomIndex, int leftIndex, int rightIndex, SparseMatrix<CellSparse8X8> cells)
         {
-            int topIndex, bottomIndex, leftIndex, rightIndex;
-            Boundary.AddStepX(x, -1, out leftIndex);
-            Boundary.AddStepX(x, 1, out rightIndex);
-            Boundary.AddStepY(y, -1, out topIndex);
-            Boundary.AddStepY(y, 1, out bottomIndex);
+            //Dump8X8(value, String.Format("AddNeighbours {0},{1}", x, y));
 
-            CellSparse8X8 topLeft = _alive[leftIndex, topIndex] ?? SpawnCell(leftIndex, topIndex, cells);
-            CellSparse8X8 top = _alive[x, topIndex] ?? SpawnCell(x, topIndex, cells);
-            CellSparse8X8 topRight = _alive[rightIndex, topIndex] ?? SpawnCell(rightIndex, topIndex, cells);
-            CellSparse8X8 left = _alive[leftIndex, y] ?? SpawnCell(leftIndex, y, cells);
-            CellSparse8X8 right = _alive[rightIndex, y] ?? SpawnCell(rightIndex, y, cells);
-            CellSparse8X8 bottomLeft = _alive[leftIndex, bottomIndex] ?? SpawnCell(leftIndex, bottomIndex, cells);
-            CellSparse8X8 bottom = _alive[x, bottomIndex] ?? SpawnCell(x, bottomIndex, cells);
-            CellSparse8X8 bottomRight = _alive[rightIndex, bottomIndex] ?? SpawnCell(rightIndex, bottomIndex, cells);
+            // check cell borders
+            ulong topLeftCorner = value & TopLeftMask;
+            ulong topBorder = value & TopMask;
+            ulong topRightCorner = value & TopRightMask;
+            ulong leftBorder = value & LeftMask;
+            ulong rightBorder = value & RightMask;
+            ulong bottomLeftCorner = value & BottomLeftMask;
+            ulong bottomBorder = value & BottomMask;
+            ulong bottomRightCorner = value & BottomRightMask;
+
+            if (topBorder == 0 && leftBorder == 0 && rightBorder == 0 && bottomBorder == 0)
+                return; // nothing to do
+
+            // create neighbour cell if cell on borders
+            if (topLeftCorner != 0 && _alive[leftIndex, topIndex] == null)
+                SpawnCell(leftIndex, topIndex, cells);
+            if (topBorder != 0 && _alive[x, topIndex] == null)
+                SpawnCell(x, topIndex, cells);
+            if (topRightCorner != 0 && _alive[rightIndex, topIndex] == null)
+                SpawnCell(rightIndex, topIndex, cells);
+            if (leftBorder != 0 && _alive[leftIndex, y] == null)
+                SpawnCell(leftIndex, y, cells);
+            if (rightBorder != 0 && _alive[rightIndex, y] == null)
+                SpawnCell(rightIndex, y, cells);
+            if (bottomLeftCorner != 0 && _alive[leftIndex, bottomIndex] == null)
+                SpawnCell(leftIndex, bottomIndex, cells);
+            if (bottomBorder != 0 && _alive[x, bottomIndex] == null)
+                SpawnCell(x, bottomIndex, cells);
+            if (bottomRightCorner != 0 && _alive[rightIndex, bottomIndex] == null)
+                SpawnCell(rightIndex, bottomIndex, cells);
+        }
+
+        private static void Dump8X8(ulong value, string msg = null)
+        {
+            Debug.WriteLine(value + " " + (msg ?? String.Empty));
+            for (int y = 0; y < 8; y++)
+            {
+                StringBuilder sb = new StringBuilder();
+                for (int x = 0; x < 8; x++)
+                {
+                    int shift = Shift[x + y*8];
+                    ulong v = (value >> shift) & 1;
+                    sb.Append(v);
+                }
+                Debug.WriteLine(sb.ToString());
+            }
         }
     }
 }

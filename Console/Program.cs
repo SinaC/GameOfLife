@@ -44,22 +44,29 @@ namespace Console
             //const ulong value = ((ulong) 1 << 0) | ((ulong) 1 << 3) | ((ulong) 1 << 12) | ((ulong) 1 << 15) | ((ulong) 1 << 48) | ((ulong) 1 << 51) | ((ulong) 1 << 60) | ((ulong) 1 << 63); // a diagonal from top left to bottom right
             //ulong newValue = test8x8.ComputeNewValue(0, value);
 
-            LifeLookup8X8AliveList testLookup8X8AliveList = new LifeLookup8X8AliveList(rule, new NoBoundary());
-            testLookup8X8AliveList.Set(1,1);
-            testLookup8X8AliveList.Set(1, 2);
-            testLookup8X8AliveList.Set(1, 3);
-            testLookup8X8AliveList.Set(5, 6);
-            testLookup8X8AliveList.Set(6, 6);
-            testLookup8X8AliveList.Set(7, 6);
-            //testLookup8X8AliveList.Set(25,0);
+            //LifeLookup8X8AliveList testLookup8X8AliveList = new LifeLookup8X8AliveList(rule, new NoBoundary());
+            //testLookup8X8AliveList.Set(1,1);
+            //testLookup8X8AliveList.Set(1, 2);
+            //testLookup8X8AliveList.Set(1, 3);
+            //testLookup8X8AliveList.Set(5, 6);
+            //testLookup8X8AliveList.Set(6, 6);
+            //testLookup8X8AliveList.Set(7, 6);
+            //testLookup8X8AliveList.Set(2, 7);
+            //testLookup8X8AliveList.Set(26,0);
 
+            //testLookup8X8AliveList.Set(6,5);
+            //testLookup8X8AliveList.Set(7,6);
+            //testLookup8X8AliveList.Set(5,7);
+            //testLookup8X8AliveList.Set(6, 7);
+            //testLookup8X8AliveList.Set(7, 7);
             //Tuple<int, int, int, int> minmax = testLookup8X8AliveList.GetMinMaxIndexes();
-            //bool[,] view = new bool[minmax.Item3 - minmax.Item1 + 8, minmax.Item4 - minmax.Item2 + 8];
+            //bool[,] view = new bool[minmax.Item3 - minmax.Item1 + 1, minmax.Item4 - minmax.Item2 + 1];
             //testLookup8X8AliveList.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4, view);
+            //testLookup8X8AliveList.NextGeneration();
 
-            testLookup8X8AliveList.NextGeneration();
-
-            LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
+            //LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new NoBoundary());
+            LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new FixedBoundary(-100,-100,100,100));
+            //LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
             //LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));
             //LifeLookup2X2 life = new LifeLookup2X2(60, 60, rule);
             //LifeLookup1X1 life = new LifeLookup1X1(60, 60, rule);
@@ -83,6 +90,11 @@ namespace Console
             //life.Set(5, 4);
             //life.Set(3, 5);
             //life.Set(4, 5);
+            //life.Set(5, 4);
+            //life.Set(6, 5);
+            //life.Set(4, 6);
+            //life.Set(5, 6);
+            //life.Set(6, 6);
 
             // R-pentomino
             //life.Set(20, 20);
@@ -102,9 +114,9 @@ namespace Console
 
             //AddRLE(life, @"d:\github\gameoflife\rle\natural-lwss.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\iwona.rle");
-            AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 0, 0);
+            //AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 0, 0);
             //AddRLE(life, @"d:\github\gameoflife\rle\pulsars-big-s.rle", 40, 30);
-            //AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
+            AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\lightweightspaceship.rle", 10, 10);
             //AddRLE(life, @"d:\github\gameoflife\rle\stripey.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\puffer-train.rle");
@@ -114,13 +126,13 @@ namespace Console
             //AddRLE(life, @"d:\github\gameoflife\rle\beacon maker.rle", 10, 10);
 
             //AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 51, 37); // to use with glider gun at 0,0
-            AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 31, 17); // to use with glider gun at 0,0
+            //AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 31, 17); // to use with glider gun at 0,0
 
             bool pause = true;
             while (true)
             {
                 //DisplayILife(life, '█', ' ');
-                DisplayILife(life, 'O', ' ');
+                DisplayILife(life, 'O', '.');
                 //DisplayILifeView(life, 0, 0, 80, 60);
                 life.NextGeneration();
                 if (System.Console.KeyAvailable || pause)
@@ -138,9 +150,14 @@ namespace Console
         private static void DisplayILife(ILife life, char cell = '*', char noCell = '.')
         {
             System.Console.SetCursorPosition(0, 0);
-            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}", life.Generation, life.Population);
-
+            System.Console.Clear();
             Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
+            if (minmax == null)
+            {
+                System.Console.WriteLine("Generation: {0,5}  Population: {1,5}", life.Generation, life.Population);
+                return;
+            }
+            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}   X:{2,3}->{3,3} Y:{4,3}->{5,3}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
             bool[,] view = new bool[minmax.Item3 - minmax.Item1 + 1, minmax.Item4 - minmax.Item2 + 1];
             life.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4, view);
             for (int y = 0; y <= minmax.Item4 - minmax.Item2; y++)
@@ -160,8 +177,8 @@ namespace Console
             System.Console.SetCursorPosition(0, 0);
             System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
 
-            bool[,] view = new bool[minmax.Item3 - minmax.Item1 + 1, minmax.Item4 - minmax.Item2 + 1];
-            life.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4, view);
+            bool[,] view = new bool[maxX - minX + 1, maxY - minY + 1];
+            life.GetView(minX, minY, maxX, maxY, view);
             for (int y = 0; y <= maxY - minY; y++)
             {
                 StringBuilder sb = new StringBuilder(11);

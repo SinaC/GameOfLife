@@ -14,4 +14,4 @@ in NextGeneration, same as Set
 instead of an array of cell, we could store a list of super cell containing 4x4 or 8x8 cell + coordinates + pointers to neighbours super cell
 
 3/
-64 bits could store a 8x4 instead of 4x4, 8x4 + neighbours gives 10x6 which fits in a 64 bits
+64 bits could store a 8x4 instead of 4x4, 8x4 + neighbours giving 10x6 which fits in a 64 bits

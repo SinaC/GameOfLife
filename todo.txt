@@ -1,3 +1,5 @@
+real sparse matrix directly implemented in cell (store ptr in every directions)
+
 GetView is not handled correctly in almost every implementation of ILife
 
 based on lookup4x4 or 8x8

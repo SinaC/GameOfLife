@@ -172,13 +172,17 @@ namespace GameOfLife
 
         public void NextGeneration()
         {
-            Debug.WriteLine("NextGeneration {0}", _alive.GetData().Count());
+            Debug.WriteLine("NextGeneration Cells: {0} Generation: {1}", _alive.GetData().Count(), Generation);
 
             SparseMatrix<CellSparse8X8> newCells = new SparseMatrix<CellSparse8X8>(); // TODO: is SparseMatrix needed ?
             foreach (CellSparse8X8 cell in _alive.GetData())
             {
                 //Debug.WriteLine("Handling cell {0},{1}", cell.X, cell.Y);
                 //Dump8X8(cell.CurrentData);
+
+                if (cell.X == 5 && cell.Y == 0 && Generation >= 23)
+                {
+                }
 
                 int x = cell.X;
                 int y = cell.Y;
@@ -297,10 +301,11 @@ namespace GameOfLife
             // every neighbour is empty
             if (topLeft == 0 && top == 0 && topRight == 0 && left == 0 && right == 0 && bottomLeft == 0 && bottom == 0 && bottomRight == 0)
                 return false;
-            // check neighbour borders
-            if ((topLeft & BottomRightMask) != 0 || (top & BottomMask) != 0 || (topRight & BottomLeftMask) != 0 || (left & RightMask) != 0 || (right & LeftMask) != 0 || (bottomLeft & TopRightMask) != 0 || (bottom & TopMask) != 0 || (bottomRight & TopLeftMask) != 0)
-                return true;
-            return false;
+            return true;
+            //// check neighbour borders   THIS IS WRONG with cell on position 63 + spacefiller on generation 25 at 47,7
+            //if ((topLeft & BottomRightMask) != 0 || (top & BottomMask) != 0 || (topRight & BottomLeftMask) != 0 || (left & RightMask) != 0 || (right & LeftMask) != 0 || (bottomLeft & TopRightMask) != 0 || (bottom & TopMask) != 0 || (bottomRight & TopLeftMask) != 0)
+            //    return true;
+            //return false;
         }
 
         private ulong ComputeNewValue(ulong value, ulong topLeft, ulong top, ulong topRight, ulong left, ulong right, ulong bottomLeft, ulong bottom, ulong bottomRight)

@@ -155,19 +155,19 @@ namespace GameOfLife
                 int x = i % _sizeX;
                 int y = i / _sizeX;
                 int topIndex, bottomIndex, leftIndex, rightIndex;
-                Boundary.AddStepX(x, -1, out leftIndex);
-                Boundary.AddStepX(x, 1, out rightIndex);
-                Boundary.AddStepY(y, -1, out topIndex);
-                Boundary.AddStepY(y, 1, out bottomIndex);
+                bool leftValid = Boundary.AddStepX(x, -1, out leftIndex);
+                bool rightValid = Boundary.AddStepX(x, 1, out rightIndex);
+                bool topValid = Boundary.AddStepY(y, -1, out topIndex);
+                bool bottomValid = Boundary.AddStepY(y, 1, out bottomIndex);
 
-                ulong topLeft = _current[GetIndex(leftIndex, topIndex)];
-                ulong top = _current[GetIndex(x, topIndex)];
-                ulong topRight = _current[GetIndex(rightIndex, topIndex)];
-                ulong left = _current[GetIndex(leftIndex, y)];
-                ulong right = _current[GetIndex(rightIndex, y)];
-                ulong bottomLeft = _current[GetIndex(leftIndex, bottomIndex)];
-                ulong bottom = _current[GetIndex(x, bottomIndex)];
-                ulong bottomRight = _current[GetIndex(rightIndex, bottomIndex)];
+                ulong topLeft = topValid && leftValid ? _current[GetIndex(leftIndex, topIndex)] : 0;
+                ulong top =  topValid ? _current[GetIndex(x, topIndex)] : 0;
+                ulong topRight = topValid && rightValid ? _current[GetIndex(rightIndex, topIndex)] : 0;
+                ulong left = leftValid ? _current[GetIndex(leftIndex, y)] : 0;
+                ulong right = rightValid ? _current[GetIndex(rightIndex, y)] : 0;
+                ulong bottomLeft = bottomValid && leftValid ? _current[GetIndex(leftIndex, bottomIndex)] : 0;
+                ulong bottom =bottomValid ? _current[GetIndex(x, bottomIndex)] : 0;
+                ulong bottomRight = bottomValid && rightValid ? _current[GetIndex(rightIndex, bottomIndex)] : 0;
 
                 // Compute new 8x8 value using neighbours
                 _next[i] = ComputeNewValue(_current[i], topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
@@ -191,8 +191,11 @@ namespace GameOfLife
                     for (int yi = 0; yi < 8; yi++)
                         for (int xi = 0; xi < 8; xi++)
                         {
-                            int shift = Shift[xi + yi*8];
-                            view[8*x + xi, 8*y + yi] = ((value >> shift) & 1) == 1;
+                            if (8 * x + xi >= minX && 8 * x + xi <= maxX && 8 * y + yi >= minY && 8 * y + yi <= maxY)
+                            {
+                                int shift = Shift[xi + yi*8];
+                                view[8*x + xi, 8*y + yi] = ((value >> shift) & 1) == 1;
+                            }
                         }
                 }
         }

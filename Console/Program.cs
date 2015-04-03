@@ -64,16 +64,16 @@ namespace Console
             //testLookup8X8AliveList.GetView(minmax.Item1, minmax.Item2, minmax.Item3, minmax.Item4, view);
             //testLookup8X8AliveList.NextGeneration();
 
-            //LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new NoBoundary());
-            LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new FixedBoundary(-100,-100,100,100));
+            LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new NoBoundary()); // bugged with spacefiller on generation 25 at 47,7
+            //LifeLookup8X8AliveList life = new LifeLookup8X8AliveList(rule, new FixedBoundary(-100,-100,100,100));
             //LifeLookup8X8 life = new LifeLookup8X8(64, 64, rule, new ToroidalBoundary(0, 0, 7, 7));
             //LifeLookup4X4 life = new LifeLookup4X4(64, 64, rule, new ToroidalBoundary(0, 0, 15, 15));
-            //LifeLookup2X2 life = new LifeLookup2X2(60, 60, rule);
+            //LifeLookup2X2 life = new LifeLookup2X2(80, 60, rule);
             //LifeLookup1X1 life = new LifeLookup1X1(60, 60, rule);
             //LifeSparse life = new LifeSparse(rule, new ToroidalBoundary(-5000, -5000, 5000, 5000));
             //LifeSparse2 life = new LifeSparse2(rule, new ToroidalBoundary(-5000, -5000, 5000, 5000));
-            //LifeDoubleBuffered life = new LifeDoubleBuffered(60, 60);
-            //LifeNaive life = new LifeNaive(60,60,rule, false);
+            //LifeDoubleBuffered life = new LifeDoubleBuffered(100, 100);
+            //LifeNaive life = new LifeNaive(1000,1000,rule, false);
             TestILife(life);
         }
 
@@ -116,24 +116,52 @@ namespace Console
             //AddRLE(life, @"d:\github\gameoflife\rle\iwona.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 0, 0);
             //AddRLE(life, @"d:\github\gameoflife\rle\pulsars-big-s.rle", 40, 30);
-            AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
+            //AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\lightweightspaceship.rle", 10, 10);
             //AddRLE(life, @"d:\github\gameoflife\rle\stripey.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\puffer-train.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\make-lightbulb.rle"); // BUG !!! 2nd and 3rd gliders on column 16->19 should have 2 rows between them instead of one
+            //AddRLE(life, @"d:\github\gameoflife\rle\make-lightbulb.rle");
             //AddRLE(life, @"d:\github\gameoflife\rle\orthogonal c-7.rle", 10, 10);
             //AddRLE(life, @"d:\github\gameoflife\rle\b52.rle", 10, 10);
             //AddRLE(life, @"d:\github\gameoflife\rle\beacon maker.rle", 10, 10);
+            //AddRLE(life, @"d:\github\gameoflife\rle\Turing-Machine-3-state.rle");
+            AddRLE(life, @"d:\github\gameoflife\rle\spacefiller.rle");
+
+            //life.Set(5, 9);
+            //life.Set(6, 9);
+            //life.Set(6, 10);
+            //life.Set(7, 10);
+            //life.Set(5, 11);
+            //life.Set(6, 11);
+            //life.Set(6, 12);
+            //life.Set(8, 6);
+            //life.Set(8, 7);
+            //life.Set(8, 8);
+            //life.Set(9, 5);
+            //life.Set(9, 9);
+            //for(int y = 0; y < 8; y++)
+            //    for (int x = 0; x < 5; x++)
+            //    {
+            //        life.Set(x, y);
+            //        life.Set(x+12,y);
+            //        life.Set(x, y+9);
+            //        life.Set(x + 12, y+9);
+            //    }
 
             //AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 51, 37); // to use with glider gun at 0,0
             //AddRLE(life, @"d:\github\gameoflife\rle\eater1.rle", 31, 17); // to use with glider gun at 0,0
 
+            //for(int y = 0; y < 64; y++)
+            //    for(int x = 0; x <64; x++)
+            //        life.Set(x,y);
+
             bool pause = true;
             while (true)
             {
+                //DisplayILifeLite(life);
                 //DisplayILife(life, '█', ' ');
-                DisplayILife(life, 'O', '.');
-                //DisplayILifeView(life, 0, 0, 80, 60);
+                //DisplayILife(life, 'O', '.');
+                DisplayILifeView(life, 0, 0, 80, 60, 'O', '.');
                 life.NextGeneration();
                 if (System.Console.KeyAvailable || pause)
                 {
@@ -145,6 +173,14 @@ namespace Console
                 }
                 System.Threading.Thread.Sleep(10);
             }
+        }
+
+        private static void DisplayILifeLite(ILife life)
+        {
+            System.Console.SetCursorPosition(0, 0);
+            Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
+            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
+
         }
 
         private static void DisplayILife(ILife life, char cell = '*', char noCell = '.')
@@ -169,7 +205,7 @@ namespace Console
             }
         }
 
-        private static void DisplayILifeView(ILife life, int minX, int minY, int maxX, int maxY)
+        private static void DisplayILifeView(ILife life, int minX, int minY, int maxX, int maxY, char cell = '*', char noCell = '.')
         {
             Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
 
@@ -186,15 +222,15 @@ namespace Console
                 {
                     //sb.Append(cells[x, y] == -1 ? "." : cells[x,y].ToString());
                     //sb.Append(cells[x, y] >= 0 ? "*" : ".");
-                    string display = "*";
+                    char display = cell;
                     if (!view[x, y])
                     {
                         if (x == 0)
-                            display = (y%10).ToString(CultureInfo.InvariantCulture);
+                            display = (y%10).ToString(CultureInfo.InvariantCulture)[0];
                         else if (y == 0)
-                            display = (x%10).ToString(CultureInfo.InvariantCulture);
+                            display = (x % 10).ToString(CultureInfo.InvariantCulture)[0];
                         else
-                            display = " ";
+                            display = noCell;
                     }
                     sb.Append(display);
                 }
@@ -326,56 +362,69 @@ namespace Console
                 string content = tr.ReadToEnd().Replace(Environment.NewLine, String.Empty).Replace("\n",String.Empty).Replace("\r", String.Empty);
                 // create cells map
                 char[] ob = new[] {'o', 'b'};
+                char[] separators = new []{'$', '!'};
                 // parse cells
-                string[] rows = content.Split('$', '!').Where(row => !String.IsNullOrEmpty(row)).ToArray();
                 List<Tuple<int, int>> cells = new List<Tuple<int, int>>();
                 int rowIndex = 0;
-                foreach (string row in rows)
+                while(true)
                 {
-                    int parseIndex = 0;
-                    int columnIndex = 0;
-
-                    while (true)
+                    if(content.Length == 0)
+                        break;
+                    int index = content.IndexOfAny(separators);
+                    if (index == 0)
                     {
-                        int obIndex = row.IndexOfAny(ob, parseIndex);
-                        int occurence;
-                        if (obIndex == parseIndex) // occurence 1
-                            occurence = 1;
-                        else if (obIndex == -1)
-                        {
-                            int rowSkip;
-                            if (int.TryParse(row.Substring(parseIndex), out rowSkip))
-                                rowIndex += rowSkip;
-                            else
-                                rowIndex++;
-                            break;
-                        }
-                        else
-                        {
-                            if (!int.TryParse(row.Substring(parseIndex, obIndex - parseIndex), out occurence))
-                                return null;
-                        }
-
-                        //for (int i = 0; i < occurence; i++ )
-                        //    System.Diagnostics.Debug.Write(row[obIndex] == 'o' ? "0" : " ");
-
-                        if (row[obIndex] == 'o')
-                        {
-                            // alive
-                            for (int i = 0; i < occurence; i++)
-                                cells.Add(new Tuple<int, int>(columnIndex + i, rowIndex));
-                        }
-                        parseIndex = obIndex + 1;
-                        columnIndex += occurence;
-                        if (parseIndex >= row.Length)
-                        {
-                            rowIndex++;
-                            break;
-                        }
+                        content = content.Remove(0, 1);
+                        rowIndex++;
+                        continue;
                     }
-                    //System.Diagnostics.Debug.WriteLine("");
-                }
+                    if (index == -1)
+                        break;
+                    string row = content.Substring(0, index);
+                    content = content.Remove(0, index+1);
+                    System.Diagnostics.Debug.WriteLine(row);
 
+                        int parseIndex = 0;
+                        int columnIndex = 0;
+
+                        while (true)
+                        {
+                            int obIndex = row.IndexOfAny(ob, parseIndex);
+                            int occurence;
+                            if (obIndex == parseIndex) // occurence 1
+                                occurence = 1;
+                            else if (obIndex == -1)
+                            {
+                                int rowSkip;
+                                if (int.TryParse(row.Substring(parseIndex), out rowSkip))
+                                    rowIndex += rowSkip;
+                                else
+                                    rowIndex++;
+                                break;
+                            }
+                            else
+                            {
+                                if (!int.TryParse(row.Substring(parseIndex, obIndex - parseIndex), out occurence))
+                                    return null;
+                            }
+
+                            //for (int i = 0; i < occurence; i++ )
+                            //    System.Diagnostics.Debug.Write(row[obIndex] == 'o' ? "0" : " ");
+
+                            if (row[obIndex] == 'o')
+                            {
+                                // alive
+                                for (int i = 0; i < occurence; i++)
+                                    cells.Add(new Tuple<int, int>(columnIndex + i, rowIndex));
+                            }
+                            parseIndex = obIndex + 1;
+                            columnIndex += occurence;
+                            if (parseIndex >= row.Length)
+                            {
+                                rowIndex++;
+                                break;
+                            }
+                        }
+                }
                 return cells;
             }
         }

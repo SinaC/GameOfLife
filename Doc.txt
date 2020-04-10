@@ -10,6 +10,7 @@ http://stackoverflow.com/questions/7392621/what-is-the-best-way-to-represent-hex
 http://www.redblobgames.com/grids/hexagons/
 
 optimisation
+https://cell-auto.com/optimisation/
 http://www.reddit.com/r/algorithms/comments/1etjf4/optimizing_conways_game_of_life/
 http://www.nondot.org/sabre/Mirrored/GraphicsProgrammingBlackBook/gpbb17.pdf
 http://downloads.gamedev.net/pdf/gpbb/gpbb18.pdf

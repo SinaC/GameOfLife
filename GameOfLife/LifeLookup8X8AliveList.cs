@@ -10,7 +10,7 @@ namespace GameOfLife
     //  instead of storing a simple 64 bit in sparse matrix, store a super cell containing 4 or 16 cell of 64 bits
     //  instead of copying NewData into CurrentData, use Data1 and Data2 and algorithm switch between 1 and 2
     //  no need to use a SparseMatrix to store newly created cells
-    //  store neighbour left/top/right/bottom index in cell (computed when creating cell)
+    //  store neighbor left/top/right/bottom index in cell (computed when creating cell)
 
     // 63  42 43 46 47 58 59 62 63  42
     //     -----------------------
@@ -27,14 +27,14 @@ namespace GameOfLife
     // 63 |42 43|46 47|58 59|62 63| 42
     //     -----------------------
     // 21  00 01 04 05 16 17 20 21  00
-    public class LifeLookup8X8AliveList : ILife
+    public class LifeLookup8X8AliveList : ILife, IAliveList
     {
         internal class CellSparse8X8
         {
             public static readonly CellSparse8X8 EmptyCell = new CellSparse8X8(0, 0);
 
-            public int X { get; private set; }
-            public int Y { get; private set; }
+            public int X { get; }
+            public int Y { get; }
 
             public ulong CurrentData { get; set; }
             public ulong NewData { get; set; } // temporary, once every alive cell has been handled, this value is copied in CurrentData
@@ -96,13 +96,15 @@ namespace GameOfLife
                 42, 43, 46, 47, 58, 59, 62, 63
             };
 
-        private readonly SparseMatrix<CellSparse8X8> _alive; // store cell with at least one bit set and neighbour of alive cell
+        private readonly SparseMatrix<CellSparse8X8> _alive; // store cell with at least one bit set and neighbor of alive cell
 
         private readonly NeighbourLookupUnnaturalOrder _lookup;
 
+        public int AliveCount => _alive.GetData().Count();
+
         public int Generation { get; private set; }
-        public Rule Rule { get; private set; }
-        public Boundary Boundary { get; private set; }
+        public Rule Rule { get; }
+        public Boundary Boundary { get; }
 
         public int Population
         {
@@ -158,7 +160,7 @@ namespace GameOfLife
 
             Debug.WriteLine("SET:{0},{1}", x, y);
 
-            // Create neighbours if needed
+            // Create neighbors if needed
             int topIndex, bottomIndex, leftIndex, rightIndex;
             Boundary.AddStepX(gridX, -1, out leftIndex);
             Boundary.AddStepX(gridX, 1, out rightIndex);
@@ -205,7 +207,7 @@ namespace GameOfLife
 
                 //Dump8X8(newValue);
 
-                if (newValue != 0) // no death -> add neighbours in new cell list
+                if (newValue != 0) // no death -> add neighbors in new cell list
                     SpawnNeighbours(x, y, newValue, topIndex, bottomIndex, leftIndex, rightIndex, newCells);
 
                 cell.NewData = newValue; // Save new value, it will be copied in current data once every cells have been handled
@@ -215,7 +217,7 @@ namespace GameOfLife
             foreach (CellSparse8X8 cell in _alive.GetData())
             {
                 cell.CurrentData = cell.NewData;
-                // if newValue == 0 and nothing in neighbourhood, remove cell
+                // if newValue == 0 and nothing in neighborhood, remove cell
                 if (cell.CurrentData == 0 && !HasNeighbours(cell))
                     toRemove.Add(cell);
             }
@@ -298,11 +300,11 @@ namespace GameOfLife
             ulong bottom = (bottomValid ? (_alive[x, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
             ulong bottomRight = (bottomValid && rightValid ? (_alive[rightIndex, bottomIndex] ?? CellSparse8X8.EmptyCell) : CellSparse8X8.EmptyCell).CurrentData;
 
-            // every neighbour is empty
+            // every neighbor is empty
             if (topLeft == 0 && top == 0 && topRight == 0 && left == 0 && right == 0 && bottomLeft == 0 && bottom == 0 && bottomRight == 0)
                 return false;
             return true;
-            //// check neighbour borders   THIS IS WRONG with cell on position 63 + spacefiller on generation 25 at 47,7
+            //// check neighbor borders   THIS IS WRONG with cell on position 63 + spacefiller on generation 25 at 47,7
             //if ((topLeft & BottomRightMask) != 0 || (top & BottomMask) != 0 || (topRight & BottomLeftMask) != 0 || (left & RightMask) != 0 || (right & LeftMask) != 0 || (bottomLeft & TopRightMask) != 0 || (bottom & TopMask) != 0 || (bottomRight & TopLeftMask) != 0)
             //    return true;
             //return false;
@@ -327,9 +329,9 @@ namespace GameOfLife
             // 21  00 01 04 05 16 17 20 21  00
 
             // lookup is built using following order (16 bits)
-            //  2x2 on 4 bits | top neighbours on 4 bits | LT on 1 bit | RT on 1 bit | LB on 1 bit | RB on 1 bit | bottom neighbours on 4 bits
+            //  2x2 on 4 bits | top neighbors on 4 bits | LT on 1 bit | RT on 1 bit | LB on 1 bit | RB on 1 bit | bottom neighbors on 4 bits
 
-            // TODO: test each sub-4x4 block, if block is 0 and no neighbours -> no need to compute value
+            // TODO: test each sub-4x4 block, if block is 0 and no neighbors -> no need to compute value
 
             // Sub-4x4 block order
             // 00 10 20 30
@@ -534,10 +536,10 @@ namespace GameOfLife
             return cell;
         }
 
-        // Create neighbours if needed (cell has a bit set on border and neighbour cell doesn't exist yet)
+        // Create neighbors if needed (cell has a bit set on border and neighbor cell doesn't exist yet)
         private void SpawnNeighbours(int x, int y, ulong value, int topIndex, int bottomIndex, int leftIndex, int rightIndex, SparseMatrix<CellSparse8X8> cells)
         {
-            //Dump8X8(value, String.Format("AddNeighbours {0},{1}", x, y));
+            //Dump8X8(value, String.Format("AddNeighbors {0},{1}", x, y));
 
             // check cell borders
             ulong topLeftCorner = value & TopLeftMask;
@@ -552,7 +554,7 @@ namespace GameOfLife
             if (topBorder == 0 && leftBorder == 0 && rightBorder == 0 && bottomBorder == 0)
                 return; // nothing to do
 
-            // create neighbour cell if cell on borders
+            // create neighbor cell if cell on borders
             if (topLeftCorner != 0 && _alive[leftIndex, topIndex] == null)
                 SpawnCell(leftIndex, topIndex, cells);
             if (topBorder != 0 && _alive[x, topIndex] == null)

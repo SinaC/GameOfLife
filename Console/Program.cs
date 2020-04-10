@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GameOfLife;
+using SparseMatrix;
 
 namespace Console
 {
@@ -12,6 +13,25 @@ namespace Console
     {
         private const int SquareX = 120;
         private const int SquareY = 80;
+
+        private static void Main2(string[] args)
+        {
+            //SparseVector<int> v = new SparseVector<int>();
+            //v[10] = 10;
+            //v[0] = 0;
+            //v[-10] = -10;
+            //v[1] = 1;
+            //System.Console.WriteLine(v.ToString());
+
+            SparseMatrix<int> m = new SparseMatrix<int>();
+
+            m[0, 0] = 0;
+            m[2, 0] = 20;
+            m[10, 8] = 108;
+            m[0, 5] = 5;
+
+            System.Console.WriteLine(m.ToString());
+        }
 
         private static void Main(string[] args)
         {
@@ -112,20 +132,24 @@ namespace Console
             //life.Set(20 + 3, 20 + 1);
             //life.Set(20 + 4, 20 + 1);
 
-            //AddRLE(life, @"d:\github\gameoflife\rle\natural-lwss.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\iwona.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\gosper glider gun.rle", 0, 0);
-            //AddRLE(life, @"d:\github\gameoflife\rle\pulsars-big-s.rle", 40, 30);
+            //https://copy.sh/life/examples/
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\natural-lwss.rle",40,40);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\iwona.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\gosper glider gun.rle", 0, 0);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\pulsars-big-s.rle", 40, 30);
             //AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\lightweightspaceship.rle", 10, 10);
-            //AddRLE(life, @"d:\github\gameoflife\rle\stripey.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\puffer-train.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\make-lightbulb.rle");
-            //AddRLE(life, @"d:\github\gameoflife\rle\orthogonal c-7.rle", 10, 10);
-            //AddRLE(life, @"d:\github\gameoflife\rle\b52.rle", 10, 10);
-            //AddRLE(life, @"d:\github\gameoflife\rle\beacon maker.rle", 10, 10);
-            //AddRLE(life, @"d:\github\gameoflife\rle\Turing-Machine-3-state.rle");
-            AddRLE(life, @"d:\github\gameoflife\rle\spacefiller.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\lightweightspaceship.rle", 10, 10);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\stripey.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\puffer-train.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\make-lightbulb.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\orthogonal c-7.rle", 10, 10);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\b52.rle", 10, 10);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\beacon maker.rle", 10, 10);
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\Turing-Machine-3-state.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\spacefiller.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\rats.rle");
+            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\112p51_synth.rle",-60,-60);
+            AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\112p51_synth.rle", -60, -60);
 
             //life.Set(5, 9);
             //life.Set(6, 9);
@@ -209,9 +233,13 @@ namespace Console
         {
             Tuple<int, int, int, int> minmax = life.GetMinMaxIndexes();
 
+            int aLiveCount = -1;
+            if (life is IAliveList iAliveList)
+                aLiveCount = iAliveList.AliveCount;
+
             //System.Console.Clear();
             System.Console.SetCursorPosition(0, 0);
-            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4);
+            System.Console.WriteLine("Generation: {0,5}  Population: {1,5}  X:{2,3}->{3,3} Y:{4,3}->{5,3} #Alive:{6}", life.Generation, life.Population, minmax.Item1, minmax.Item3, minmax.Item2, minmax.Item4, aLiveCount);
 
             bool[,] view = new bool[maxX - minX + 1, maxY - minY + 1];
             life.GetView(minX, minY, maxX, maxY, view);

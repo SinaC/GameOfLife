@@ -1,11 +1,11 @@
-﻿using System;
+﻿using GameOfLife;
+using SparseMatrix;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using GameOfLife;
-using SparseMatrix;
 
 namespace Console
 {
@@ -133,23 +133,23 @@ namespace Console
             //life.Set(20 + 4, 20 + 1);
 
             //https://copy.sh/life/examples/
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\natural-lwss.rle",40,40);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\iwona.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\gosper glider gun.rle", 0, 0);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\pulsars-big-s.rle", 40, 30);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\natural-lwss.rle",40,40);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\iwona.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\gosper glider gun.rle", 0, 0);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\pulsars-big-s.rle", 40, 30);
             //AddRLE(life, @"d:\github\gameoflife\rle\glider.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\lightweightspaceship.rle", 10, 10);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\stripey.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\puffer-train.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\make-lightbulb.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\orthogonal c-7.rle", 10, 10);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\b52.rle", 10, 10);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\beacon maker.rle", 10, 10);
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\Turing-Machine-3-state.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\spacefiller.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\rats.rle");
-            //AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\112p51_synth.rle",-60,-60);
-            AddRLE(life, @"c:\prj\personal\gameoflife-master\rle\112p51_synth.rle", -60, -60);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\lightweightspaceship.rle", 10, 10);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\stripey.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\puffer-train.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\make-lightbulb.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\orthogonal c-7.rle", 10, 10);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\b52.rle", 10, 10);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\beacon maker.rle", 10, 10);
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\Turing-Machine-3-state.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\spacefiller.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\rats.rle");
+            //AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\112p51_synth.rle",-60,-60);
+            AddRLE(life, @"D:\Projects\Repos\GameOfLife\rle\112p51_synth.rle", -60, -60);
 
             //life.Set(5, 9);
             //life.Set(6, 9);
@@ -275,7 +275,7 @@ namespace Console
             //life.Set(1, 3);
             //life.Set(2, 3);
             //life.Set(3, 3);
-            IEnumerable<Tuple<int, int>> cells = ReadRLE(@"d:\github\gameoflife\rle\gosper glider gun.rle");
+            IEnumerable<Tuple<int, int>> cells = ReadRLE(@"D:\Projects\Repos\GameOfLife\rle\gosper glider gun.rle");
             foreach (Tuple<int, int> cell in cells)
                 life.Set(cell.Item1, cell.Item2);
 
